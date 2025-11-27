@@ -1,95 +1,114 @@
 import { CONFIG } from './config.js';
 import { state } from './state.js';
+import { cacheService } from './cacheService.js';
 
-export function getCachedData() {
+export async function getCachedData() {
   try {
-    const cached = localStorage.getItem('monkrus_data');
+    const cached = await cacheService.get('data');
     if (!cached) return null;
 
-    const { data, timestamp } = JSON.parse(cached);
+    const { data, timestamp } = cached;
     const age = Date.now() - timestamp;
 
     if (age < CONFIG.cacheDuration) {
+      console.log('✓ Using cached data:', data.length, 'items', `(${Math.round(age / 1000)}s old)`);
       return data;
     }
 
-    // Cache expired
-    localStorage.removeItem('monkrus_data');
+    console.log('✗ Cache expired, fetching fresh data');
     return null;
   } catch (error) {
+    console.warn('Cache read error:', error);
     return null;
   }
 }
 
-export function cacheData(data) {
+export async function cacheData(data) {
   try {
     const cacheObject = {
       data,
       timestamp: Date.now(),
     };
-    localStorage.setItem('monkrus_data', JSON.stringify(cacheObject));
+    await cacheService.set('data', cacheObject);
+    console.log('✓ Data cached successfully');
   } catch (error) {
     console.warn('Failed to cache data:', error);
   }
 }
 
 export async function fetchData(onDataChunk) {
-  // Check cache first
-  const cachedData = getCachedData();
+  // Check cache first for instant load
+  const cachedData = await getCachedData();
   if (cachedData) {
-    console.log('Using cached data:', cachedData.length, 'items');
-    // Return cached data immediately
     if (onDataChunk) {
       onDataChunk(cachedData);
     }
     return cachedData;
   }
 
-  // Fetch fresh data
-  console.log('Fetching data from:', CONFIG.dataUrl);
+  // Fetch fresh data with retry logic
+  console.log('⟳ Fetching data from:', CONFIG.dataUrl);
   
-  try {
-    const response = await fetch(CONFIG.dataUrl, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      },
-    });
-    
-    if (!response.ok) {
-      console.error('Fetch failed:', response.status, response.statusText);
-      throw new Error(`Network response failed: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    console.log('Data fetched:', data.length, 'items');
-    
-    if (!Array.isArray(data)) {
-      console.error('Invalid data format, expected array');
-      throw new Error('Invalid data format');
-    }
-    
-    const validatedData = data.filter(item => 
-      item && 
-      typeof item.title === 'string' && 
-      typeof item.link === 'string' && 
-      Array.isArray(item.links)
-    );
-    
-    console.log('Validated data:', validatedData.length, 'items');
+  let retries = 3;
+  while (retries > 0) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000); // 30s timeout
 
-    // Cache the data
-    cacheData(validatedData);
-    
-    // Call chunk callback for progressive rendering
-    if (onDataChunk) {
-      onDataChunk(validatedData);
+      const response = await fetch(CONFIG.dataUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        },
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeout);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('✓ Data fetched:', data.length, 'items');
+      
+      if (!Array.isArray(data)) {
+        throw new Error('Invalid data format: expected array');
+      }
+      
+      const validatedData = data.filter(item => 
+        item && 
+        typeof item.title === 'string' && 
+        typeof item.link === 'string' && 
+        Array.isArray(item.links)
+      );
+      
+      if (validatedData.length === 0) {
+        throw new Error('No valid data items found');
+      }
+
+      console.log('✓ Validated data:', validatedData.length, 'items');
+
+      // Cache the data for next visit
+      await cacheData(validatedData);
+      
+      // Progressive rendering
+      if (onDataChunk) {
+        onDataChunk(validatedData);
+      }
+      
+      return validatedData;
+    } catch (error) {
+      retries--;
+      console.error(`Fetch attempt failed (${3 - retries}/3):`, error.message);
+      
+      if (retries === 0) {
+        throw new Error(`Failed to load data after 3 attempts: ${error.message}`);
+      }
+      
+      // Wait before retry (exponential backoff)
+      await new Promise(resolve => setTimeout(resolve, 1000 * (4 - retries)));
     }
-    
-    return validatedData;
-  } catch (error) {
-    console.error('Fetch error:', error);
-    throw error;
   }
 }
 

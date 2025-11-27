@@ -6,20 +6,23 @@
 }
 
 :root {
-  --bg-primary: #0D0E0E;
-  --bg-secondary: #1a1b1b;
-  --bg-card: #222323;
-  --bg-card-hover: #2a2b2b;
-  --text-primary: #ffffff;
-  --text-secondary: #a0a0a0;
-  --text-muted: #6b6b6b;
-  --border: #333434;
-  --accent-green: #3fb950;
-  --accent-green-hover: #2ea043;
-  --accent-green-dark: #238636;
-  --accent-blue: #58a6ff;
-  --radius: 12px;
-  --radius-sm: 8px;
+  /* Match React version colors - all HSL based */
+  --background: hsl(0, 0%, 0%);
+  --foreground: hsl(0, 0%, 98%);
+  --card: hsl(0, 0%, 8%);
+  --card-hover: hsl(0, 0%, 12%);
+  --text-primary: hsl(0, 0%, 98%);
+  --text-secondary: hsl(0, 0%, 65%);
+  --text-muted: hsl(0, 0%, 45%);
+  --border: hsl(0, 0%, 20%);
+  --accent-green: hsl(120, 60%, 50%);
+  --accent-green-hover: hsl(120, 55%, 45%);
+  --accent-blue: hsl(210, 100%, 70%);
+  --positive: hsl(120, 60%, 50%);
+  --warning: hsl(45, 90%, 60%);
+  --destructive: hsl(0, 75%, 55%);
+  --radius: 0.75rem;
+  --radius-sm: 0.5rem;
   --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
@@ -31,8 +34,8 @@ html {
 
 body {
   font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: var(--bg-primary);
-  color: var(--text-primary);
+  background: var(--background);
+  color: var(--foreground);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -46,7 +49,7 @@ body {
 
 /* Header */
 .header {
-  background: var(--bg-secondary);
+  background: var(--card);
   border-bottom: 1px solid var(--border);
   padding: 24px 0;
   position: sticky;
@@ -69,10 +72,10 @@ body {
 }
 
 .sidebar-toggle {
-  background: var(--bg-card);
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  color: var(--text-primary);
+  color: var(--foreground);
   cursor: pointer;
   padding: 10px;
   transition: var(--transition);
@@ -82,7 +85,7 @@ body {
 }
 
 .sidebar-toggle:hover {
-  background: var(--bg-card-hover);
+  background: var(--card-hover);
   transform: translateY(-2px);
 }
 
@@ -103,10 +106,10 @@ body {
 
 .search-input {
   width: 100%;
-  background: var(--bg-card);
+  background: var(--card);
   border: 2px solid var(--border);
   border-radius: var(--radius);
-  color: var(--text-primary);
+  color: var(--foreground);
   font-size: 16px;
   padding: 16px 48px 16px 48px;
   transition: var(--transition);
@@ -144,7 +147,7 @@ body {
 }
 
 .clear-search:hover {
-  color: var(--text-primary);
+  color: var(--foreground);
 }
 
 /* Controls */
@@ -164,7 +167,7 @@ body {
 }
 
 .filter-chip {
-  background: var(--bg-card);
+  background: var(--card);
   border: 2px solid var(--border);
   border-radius: 999px;
   color: var(--text-secondary);
@@ -177,15 +180,15 @@ body {
 }
 
 .filter-chip:hover {
-  background: var(--bg-card-hover);
+  background: var(--card-hover);
   border-color: var(--accent-green);
-  color: var(--text-primary);
+  color: var(--foreground);
 }
 
 .filter-chip.active {
-  background: var(--accent-green-dark);
+  background: var(--accent-green);
   border-color: var(--accent-green);
-  color: var(--text-primary);
+  color: var(--foreground);
 }
 
 .sort-container {
@@ -201,10 +204,10 @@ body {
 }
 
 .sort-select {
-  background: var(--bg-card);
+  background: var(--card);
   border: 2px solid var(--border);
   border-radius: var(--radius-sm);
-  color: var(--text-primary);
+  color: var(--foreground);
   cursor: pointer;
   font-size: 14px;
   padding: 10px 16px;
@@ -270,7 +273,7 @@ body {
   background: var(--accent-green);
   border: none;
   border-radius: var(--radius-sm);
-  color: var(--text-primary);
+  color: var(--foreground);
   cursor: pointer;
   font-size: 16px;
   font-weight: 600;
@@ -302,7 +305,7 @@ body {
 
 /* Card */
 .card {
-  background: var(--bg-card);
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 24px;
@@ -310,7 +313,7 @@ body {
 }
 
 .card:hover {
-  background: var(--bg-card-hover);
+  background: var(--card-hover);
   border-color: var(--accent-green);
   box-shadow: var(--shadow);
 }
@@ -369,7 +372,7 @@ body {
 
 .card-title mark {
   background: var(--accent-green);
-  color: var(--text-primary);
+  color: var(--foreground);
   padding: 2px 4px;
   border-radius: 4px;
 }
@@ -382,7 +385,7 @@ body {
 }
 
 .category-tag {
-  background: var(--bg-secondary);
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: 6px;
   color: var(--text-secondary);
@@ -416,7 +419,7 @@ body {
   background: var(--accent-green);
   border: none;
   border-radius: var(--radius-sm);
-  color: var(--text-primary);
+  color: var(--foreground);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -440,14 +443,14 @@ body {
 }
 
 .best-mirror-button:disabled {
-  background: var(--bg-secondary);
+  background: var(--card);
   color: var(--text-muted);
   cursor: not-allowed;
   transform: none;
 }
 
 .expand-button {
-  background: var(--bg-secondary);
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
@@ -463,8 +466,8 @@ body {
 }
 
 .expand-button:hover {
-  background: var(--bg-card-hover);
-  color: var(--text-primary);
+  background: var(--card-hover);
+  color: var(--foreground);
 }
 
 .expand-button.expanded .chevron-icon {
@@ -508,7 +511,7 @@ body {
 }
 
 .test-all-button {
-  background: var(--bg-secondary);
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
@@ -524,8 +527,8 @@ body {
 }
 
 .test-all-button:hover {
-  background: var(--bg-card-hover);
-  color: var(--text-primary);
+  background: var(--card-hover);
+  color: var(--foreground);
 }
 
 .test-all-button:disabled {
@@ -548,7 +551,7 @@ body {
 }
 
 .mirrors-list::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
+  background: var(--card);
   border-radius: 3px;
 }
 
@@ -562,7 +565,7 @@ body {
 }
 
 .mirror-item {
-  background: var(--bg-secondary);
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   display: flex;
@@ -574,7 +577,7 @@ body {
 }
 
 .mirror-item:hover {
-  background: var(--bg-card);
+  background: var(--card-hover);
   border-color: var(--accent-green);
 }
 
@@ -627,7 +630,7 @@ body {
 .mirror-domain {
   font-size: 13px;
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--foreground);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -635,7 +638,7 @@ body {
 
 .mirror-domain mark {
   background: var(--accent-green);
-  color: var(--text-primary);
+  color: var(--foreground);
   padding: 2px 4px;
   border-radius: 4px;
 }
@@ -653,7 +656,7 @@ body {
 
 .copy-button,
 .download-button {
-  background: var(--bg-card);
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: 6px;
   color: var(--text-secondary);
@@ -674,14 +677,14 @@ body {
 
 .copy-button:hover,
 .download-button:hover {
-  background: var(--bg-card-hover);
-  color: var(--text-primary);
+  background: var(--card-hover);
+  color: var(--foreground);
   border-color: var(--accent-green);
 }
 
 .copy-button.copied {
   background: var(--accent-green);
-  color: var(--text-primary);
+  color: var(--foreground);
   border-color: var(--accent-green);
 }
 
@@ -696,10 +699,10 @@ body {
 }
 
 .pagination-button {
-  background: var(--bg-card);
+  background: var(--card);
   border: 2px solid var(--border);
   border-radius: var(--radius-sm);
-  color: var(--text-primary);
+  color: var(--foreground);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -712,7 +715,7 @@ body {
 }
 
 .pagination-button:hover:not(:disabled) {
-  background: var(--bg-card-hover);
+  background: var(--card-hover);
   border-color: var(--accent-green);
   transform: translateY(-2px);
 }
@@ -729,7 +732,7 @@ body {
 }
 
 .page-number {
-  background: var(--bg-card);
+  background: var(--card);
   border: 2px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
@@ -744,15 +747,15 @@ body {
 }
 
 .page-number:hover {
-  background: var(--bg-card-hover);
+  background: var(--card-hover);
   border-color: var(--accent-green);
-  color: var(--text-primary);
+  color: var(--foreground);
 }
 
 .page-number.active {
-  background: var(--accent-green-dark);
+  background: var(--accent-green);
   border-color: var(--accent-green);
-  color: var(--text-primary);
+  color: var(--foreground);
 }
 
 .page-ellipsis {
@@ -769,7 +772,7 @@ body {
   background: var(--accent-green);
   border: none;
   border-radius: 50%;
-  color: var(--text-primary);
+  color: var(--foreground);
   cursor: pointer;
   width: 56px;
   height: 56px;
@@ -800,14 +803,14 @@ body {
 .skeleton-icon {
   width: 28px;
   height: 28px;
-  background: var(--bg-secondary);
+  background: var(--card);
   border-radius: 6px;
   animation: skeleton-pulse 1.5s ease-in-out infinite;
 }
 
 .skeleton-title {
   height: 24px;
-  background: var(--bg-secondary);
+  background: var(--card);
   border-radius: 6px;
   width: 60%;
   margin-bottom: 8px;
@@ -816,7 +819,7 @@ body {
 
 .skeleton-meta {
   height: 16px;
-  background: var(--bg-secondary);
+  background: var(--card);
   border-radius: 6px;
   width: 30%;
   animation: skeleton-pulse 1.5s ease-in-out infinite;
@@ -825,7 +828,7 @@ body {
 .skeleton-button {
   height: 44px;
   width: 140px;
-  background: var(--bg-secondary);
+  background: var(--card);
   border-radius: var(--radius-sm);
   animation: skeleton-pulse 1.5s ease-in-out infinite;
 }
@@ -833,7 +836,7 @@ body {
 .skeleton-button-sm {
   height: 44px;
   width: 100px;
-  background: var(--bg-secondary);
+  background: var(--card);
   border-radius: var(--radius-sm);
   animation: skeleton-pulse 1.5s ease-in-out infinite;
 }
@@ -872,7 +875,7 @@ body {
   width: 100%;
   max-width: 400px;
   height: 100vh;
-  background: var(--bg-secondary);
+  background: var(--card);
   border-left: 1px solid var(--border);
   padding: 24px;
   overflow-y: auto;
@@ -919,10 +922,10 @@ body {
 }
 
 .sidebar-close {
-  background: var(--bg-card);
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  color: var(--text-primary);
+  color: var(--foreground);
   cursor: pointer;
   font-size: 32px;
   line-height: 1;
@@ -931,7 +934,7 @@ body {
 }
 
 .sidebar-close:hover {
-  background: var(--bg-card-hover);
+  background: var(--card-hover);
   transform: rotate(90deg);
 }
 
@@ -963,7 +966,7 @@ body {
 }
 
 .sidebar-item {
-  background: var(--bg-card);
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 12px;
@@ -972,14 +975,14 @@ body {
 }
 
 .sidebar-item:hover {
-  background: var(--bg-card-hover);
+  background: var(--card-hover);
   border-color: var(--accent-green);
 }
 
 .sidebar-item-title {
   font-size: 14px;
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--foreground);
   margin-bottom: 4px;
   line-height: 1.4;
   display: -webkit-box;
