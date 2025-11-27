@@ -37,6 +37,7 @@ export async function fetchData(onDataChunk) {
   // Check cache first
   const cachedData = getCachedData();
   if (cachedData) {
+    console.log('Using cached data:', cachedData.length, 'items');
     // Return cached data immediately
     if (onDataChunk) {
       onDataChunk(cachedData);
@@ -45,29 +46,51 @@ export async function fetchData(onDataChunk) {
   }
 
   // Fetch fresh data
-  const response = await fetch(CONFIG.dataUrl);
-  if (!response.ok) throw new Error('Network response failed');
+  console.log('Fetching data from:', CONFIG.dataUrl);
   
-  const data = await response.json();
-  
-  if (!Array.isArray(data)) throw new Error('Invalid data format');
-  
-  const validatedData = data.filter(item => 
-    item && 
-    typeof item.title === 'string' && 
-    typeof item.link === 'string' && 
-    Array.isArray(item.links)
-  );
+  try {
+    const response = await fetch(CONFIG.dataUrl, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      console.error('Fetch failed:', response.status, response.statusText);
+      throw new Error(`Network response failed: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log('Data fetched:', data.length, 'items');
+    
+    if (!Array.isArray(data)) {
+      console.error('Invalid data format, expected array');
+      throw new Error('Invalid data format');
+    }
+    
+    const validatedData = data.filter(item => 
+      item && 
+      typeof item.title === 'string' && 
+      typeof item.link === 'string' && 
+      Array.isArray(item.links)
+    );
+    
+    console.log('Validated data:', validatedData.length, 'items');
 
-  // Cache the data
-  cacheData(validatedData);
-  
-  // Call chunk callback for progressive rendering
-  if (onDataChunk) {
-    onDataChunk(validatedData);
+    // Cache the data
+    cacheData(validatedData);
+    
+    // Call chunk callback for progressive rendering
+    if (onDataChunk) {
+      onDataChunk(validatedData);
+    }
+    
+    return validatedData;
+  } catch (error) {
+    console.error('Fetch error:', error);
+    throw error;
   }
-  
-  return validatedData;
 }
 
 export async function testMirror(url) {
