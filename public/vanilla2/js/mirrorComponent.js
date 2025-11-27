@@ -24,6 +24,14 @@ export function createMirrorItem(mirror, item) {
     highlightText(domainEl, state.searchQuery);
   }
 
+  // Add recommended badge if applicable
+  if (isRecommended) {
+    const badge = document.createElement('span');
+    badge.className = 'recommended-badge';
+    badge.textContent = 'recommended';
+    li.appendChild(badge);
+  }
+
   // Status
   const statusEl = li.querySelector('.mirror-status');
   const timeEl = li.querySelector('.mirror-time');
@@ -34,13 +42,17 @@ export function createMirrorItem(mirror, item) {
     updateMirrorStatus(statusEl, timeEl, tests[mirror]);
   }
 
-  // Copy button
+  // Remove copy and download buttons
   const copyBtn = li.querySelector('.copy-button');
-  copyBtn.addEventListener('click', () => copyToClipboard(mirror, copyBtn));
-
-  // Download button
   const downloadBtn = li.querySelector('.download-button');
-  downloadBtn.href = mirror;
+  if (copyBtn) copyBtn.remove();
+  if (downloadBtn) downloadBtn.remove();
+
+  // Make entire item clickable
+  li.style.cursor = 'pointer';
+  li.addEventListener('click', () => {
+    window.open(mirror, '_blank');
+  });
 
   // Store mirror URL for testing
   li.dataset.mirror = mirror;

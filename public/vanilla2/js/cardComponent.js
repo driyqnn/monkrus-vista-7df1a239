@@ -162,5 +162,5 @@ function openBestMirror(item) {
     bestMirror = preferredMirrors.length > 0 ? preferredMirrors[0] : item.links[0];
   }
 
-  window.open(bestMirror, '_blank', 'noopener,noreferrer');
+  window.open(bestMirror, '_blank');
 }

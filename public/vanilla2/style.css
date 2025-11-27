@@ -19,6 +19,8 @@
   --accent-green-hover: hsl(120, 55%, 45%);
   --accent-blue: hsl(210, 100%, 70%);
   --positive: hsl(120, 60%, 50%);
+  --positive-bg: hsla(120, 60%, 50%, 0.1);
+  --positive-border: hsla(120, 60%, 50%, 0.3);
   --warning: hsl(45, 90%, 60%);
   --destructive: hsl(0, 75%, 55%);
   --radius: 0.75rem;
@@ -574,16 +576,40 @@ body {
   gap: 12px;
   padding: 10px 12px;
   transition: var(--transition);
+  cursor: pointer;
+  position: relative;
 }
 
 .mirror-item:hover {
   background: var(--card-hover);
   border-color: var(--accent-green);
+  transform: scale(1.02);
+  box-shadow: var(--shadow);
 }
 
 .mirror-item.recommended {
-  border-color: var(--accent-green);
-  background: rgba(63, 185, 80, 0.05);
+  border-color: var(--positive-border);
+  background: var(--positive-bg);
+}
+
+.mirror-item.recommended:hover {
+  background: var(--positive-bg);
+  border-color: var(--positive);
+  box-shadow: 0 0 0 2px var(--positive-bg);
+}
+
+.recommended-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--positive);
+  color: var(--background);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
 }
 
 .mirror-info {
