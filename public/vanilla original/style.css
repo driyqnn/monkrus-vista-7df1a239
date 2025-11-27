@@ -685,35 +685,183 @@ body {
   border-color: var(--accent-green);
 }
 
-/* Load More */
-.load-more-container {
-  text-align: center;
+/* Pagination */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
   padding: 32px 20px;
+  flex-wrap: wrap;
 }
 
-.load-more-button {
+.pagination-button {
   background: var(--bg-card);
   border: 2px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
   cursor: pointer;
-  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
   font-weight: 600;
-  padding: 14px 40px;
+  padding: 12px 20px;
   transition: var(--transition);
   font-family: inherit;
 }
 
-.load-more-button:hover {
+.pagination-button:hover:not(:disabled) {
   background: var(--bg-card-hover);
   border-color: var(--accent-green);
   transform: translateY(-2px);
 }
 
-.load-more-button:disabled {
-  opacity: 0.5;
+.pagination-button:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
-  transform: none;
+}
+
+.page-numbers {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.page-number {
+  background: var(--bg-card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  min-width: 44px;
+  height: 44px;
+  padding: 0 12px;
+  transition: var(--transition);
+  font-family: inherit;
+}
+
+.page-number:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-green);
+  color: var(--text-primary);
+}
+
+.page-number.active {
+  background: var(--accent-green-dark);
+  border-color: var(--accent-green);
+  color: var(--text-primary);
+}
+
+.page-ellipsis {
+  color: var(--text-muted);
+  font-size: 18px;
+  padding: 0 8px;
+}
+
+/* Scroll to Top */
+.scroll-to-top {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  background: var(--accent-green);
+  border: none;
+  border-radius: 50%;
+  color: var(--text-primary);
+  cursor: pointer;
+  width: 56px;
+  height: 56px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+}
+
+.scroll-to-top:hover {
+  background: var(--accent-green-hover);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+.scroll-to-top:active {
+  transform: translateY(-2px);
+}
+
+/* Skeleton Loading */
+.card.skeleton {
+  pointer-events: none;
+  animation: none;
+}
+
+.skeleton-icon {
+  width: 28px;
+  height: 28px;
+  background: var(--bg-secondary);
+  border-radius: 6px;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-title {
+  height: 24px;
+  background: var(--bg-secondary);
+  border-radius: 6px;
+  width: 60%;
+  margin-bottom: 8px;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-meta {
+  height: 16px;
+  background: var(--bg-secondary);
+  border-radius: 6px;
+  width: 30%;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-button {
+  height: 44px;
+  width: 140px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-button-sm {
+  height: 44px;
+  width: 100px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Fade In Animation */
+.card.fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Sidebar */
@@ -924,6 +1072,28 @@ body {
   .sidebar {
     max-width: 100%;
     right: -100%;
+  }
+
+  .scroll-to-top {
+    bottom: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .pagination-container {
+    padding: 24px 16px;
+  }
+
+  .pagination-button {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+
+  .page-number {
+    min-width: 38px;
+    height: 38px;
+    font-size: 14px;
   }
 }
 

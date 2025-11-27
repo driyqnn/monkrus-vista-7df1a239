@@ -1,6 +1,6 @@
 import { state, elements } from './state.js';
 import { applyFilters, applySorting } from './filterSort.js';
-import { renderInitialItems, loadMoreItems } from './renderer.js';
+import { renderInitialItems, nextPage, prevPage } from './renderer.js';
 import { openSidebar, closeSidebar } from './sidebar.js';
 import { loadData } from './main.js';
 
@@ -47,21 +47,30 @@ export function attachEventListeners() {
     renderInitialItems();
   });
 
-  // Load more
-  elements.loadMoreButton.addEventListener('click', loadMoreItems);
+  // Pagination
+  elements.prevPage.addEventListener('click', prevPage);
+  elements.nextPage.addEventListener('click', nextPage);
 
-  // Infinite scroll
+  // Scroll to top button
   let scrollTimeout;
   window.addEventListener('scroll', () => {
     clearTimeout(scrollTimeout);
     scrollTimeout = setTimeout(() => {
-      const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-      const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
-
-      if (scrollPercentage > 0.8 && elements.loadMoreButton.style.display !== 'none') {
-        loadMoreItems();
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      
+      if (scrollTop > 300) {
+        elements.scrollToTop.style.display = 'flex';
+      } else {
+        elements.scrollToTop.style.display = 'none';
       }
     }, 100);
+  });
+
+  elements.scrollToTop.addEventListener('click', () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
   });
 
   // Sidebar
@@ -83,6 +92,13 @@ export function attachEventListeners() {
     if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
       e.preventDefault();
       elements.searchInput.focus();
+    }
+
+    // Arrow keys for pagination
+    if (e.key === 'ArrowLeft') {
+      prevPage();
+    } else if (e.key === 'ArrowRight') {
+      nextPage();
     }
   });
 }
