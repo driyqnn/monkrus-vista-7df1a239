@@ -25,6 +25,52 @@ const state = {
   isLoadingChunk: false,
 };
 
+// ============= LOCAL STORAGE =============
+function loadFromLocalStorage() {
+  try {
+    const favorites = localStorage.getItem('monkrus_favorites');
+    if (favorites) {
+      state.favorites = new Set(JSON.parse(favorites));
+    }
+  } catch (error) {
+    console.warn('Failed to load favorites:', error);
+  }
+
+  try {
+    const recent = localStorage.getItem('monkrus_recent');
+    if (recent) {
+      state.recentlyViewed = JSON.parse(recent);
+    }
+  } catch (error) {
+    console.warn('Failed to load recent items:', error);
+  }
+
+  try {
+    const sort = localStorage.getItem('monkrus_sort');
+    if (sort) {
+      state.sortBy = sort;
+    }
+  } catch (error) {
+    console.warn('Failed to load sort preference:', error);
+  }
+}
+
+function saveFavorites() {
+  try {
+    localStorage.setItem('monkrus_favorites', JSON.stringify([...state.favorites]));
+  } catch (error) {
+    console.warn('Failed to save favorites:', error);
+  }
+}
+
+function saveRecentlyViewed() {
+  try {
+    localStorage.setItem('monkrus_recent', JSON.stringify(state.recentlyViewed));
+  } catch (error) {
+    console.warn('Failed to save recent items:', error);
+  }
+}
+
 // ============= DOM ELEMENTS =============
 const elements = {};
 
@@ -126,6 +172,17 @@ function getDomain(url) {
   } catch {
     return url;
   }
+}
+
+function highlightText(element, query) {
+  const text = element.textContent;
+  const regex = new RegExp(`(${escapeRegex(query)})`, 'gi');
+  const highlighted = text.replace(regex, '<mark>$1</mark>');
+  element.innerHTML = highlighted;
+}
+
+function escapeRegex(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function showLoading() {
@@ -234,6 +291,9 @@ function createCard(item) {
 
   const title = card.querySelector('.card-title');
   title.textContent = item.title;
+  if (state.searchQuery) {
+    highlightText(title, state.searchQuery);
+  }
 
   const categoryTag = card.querySelector('.category-tag');
   categoryTag.textContent = getCategory(item.title);
@@ -248,6 +308,10 @@ function createCard(item) {
   if (state.favorites.has(item.link)) {
     favoriteBtn.classList.add('active');
   }
+  favoriteBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleFavorite(item);
+  });
 
   const bestMirrorBtn = card.querySelector('.best-mirror-button');
   if (item.links.length === 0) {
@@ -255,7 +319,7 @@ function createCard(item) {
   } else {
     bestMirrorBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      window.open(item.links[0], '_blank');
+      openBestMirror(item);
     });
   }
 
@@ -287,7 +351,54 @@ function toggleCard(article, item) {
     if (mirrorsList.children.length === 0) {
       renderMirrors(mirrorsList, item);
     }
+
+    addToRecentlyViewed(item);
   }
+}
+
+function openBestMirror(item) {
+  if (item.links.length === 0) return;
+
+  const tests = state.mirrorTests.get(item.link);
+  let bestMirror = null;
+
+  if (tests) {
+    const preferredMirrors = item.links.filter(mirror => {
+      const domain = getDomain(mirror);
+      return CONFIG.preferredMirrors.some(pref => domain.includes(pref));
+    });
+
+    if (preferredMirrors.length > 0) {
+      bestMirror = preferredMirrors.reduce((best, current) => {
+        const bestTest = tests[best];
+        const currentTest = tests[current];
+        
+        if (!bestTest) return current;
+        if (!currentTest) return best;
+        if (!bestTest.online) return current;
+        if (!currentTest.online) return best;
+        
+        return currentTest.time < bestTest.time ? current : best;
+      });
+    } else {
+      const onlineMirrors = item.links.filter(m => tests[m]?.online);
+      if (onlineMirrors.length > 0) {
+        bestMirror = onlineMirrors.reduce((best, current) => {
+          return tests[current].time < tests[best].time ? current : best;
+        });
+      }
+    }
+  }
+
+  if (!bestMirror) {
+    const preferredMirrors = item.links.filter(mirror => {
+      const domain = getDomain(mirror);
+      return CONFIG.preferredMirrors.some(pref => domain.includes(pref));
+    });
+    bestMirror = preferredMirrors.length > 0 ? preferredMirrors[0] : item.links[0];
+  }
+
+  window.open(bestMirror, '_blank', 'noopener,noreferrer');
 }
 
 function renderMirrors(mirrorsList, item) {
@@ -310,6 +421,9 @@ function createMirrorItem(mirror, item) {
 
   const domainEl = li.querySelector('.mirror-domain');
   domainEl.textContent = domain;
+  if (state.searchQuery) {
+    highlightText(domainEl, state.searchQuery);
+  }
 
   const downloadBtn = li.querySelector('.download-button');
   downloadBtn.href = mirror;
@@ -339,6 +453,163 @@ function updatePagination() {
   elements.paginationContainer.style.display = 'flex';
   elements.prevPage.disabled = state.currentPage === 1;
   elements.nextPage.disabled = state.currentPage === state.totalPages;
+  renderPageNumbers();
+}
+
+function renderPageNumbers() {
+  if (!elements.pageNumbers) return;
+  
+  elements.pageNumbers.innerHTML = '';
+  const maxVisible = 7;
+  let startPage = Math.max(1, state.currentPage - 3);
+  let endPage = Math.min(state.totalPages, startPage + maxVisible - 1);
+  
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1);
+  }
+
+  if (startPage > 1) {
+    createPageButton(1);
+    if (startPage > 2) {
+      createEllipsis();
+    }
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    createPageButton(i);
+  }
+
+  if (endPage < state.totalPages) {
+    if (endPage < state.totalPages - 1) {
+      createEllipsis();
+    }
+    createPageButton(state.totalPages);
+  }
+}
+
+function createPageButton(pageNum) {
+  const button = document.createElement('button');
+  button.className = 'page-number';
+  button.textContent = pageNum;
+  
+  if (pageNum === state.currentPage) {
+    button.classList.add('active');
+    button.setAttribute('aria-current', 'page');
+  }
+  
+  button.addEventListener('click', () => {
+    if (pageNum !== state.currentPage) {
+      state.currentPage = pageNum;
+      renderCurrentPage();
+    }
+  });
+  elements.pageNumbers.appendChild(button);
+}
+
+function createEllipsis() {
+  const ellipsis = document.createElement('span');
+  ellipsis.className = 'page-ellipsis';
+  ellipsis.textContent = '...';
+  elements.pageNumbers.appendChild(ellipsis);
+}
+
+// ============= FAVORITES & RECENT =============
+function toggleFavorite(item) {
+  if (state.favorites.has(item.link)) {
+    state.favorites.delete(item.link);
+  } else {
+    state.favorites.add(item.link);
+  }
+
+  const card = document.querySelector(`[data-link="${item.link}"]`);
+  if (card) {
+    const btn = card.querySelector('.favorite-button');
+    btn.classList.toggle('active');
+  }
+
+  saveFavorites();
+  renderSidebar();
+}
+
+function addToRecentlyViewed(item) {
+  state.recentlyViewed = state.recentlyViewed.filter(i => i.link !== item.link);
+  state.recentlyViewed.unshift(item);
+  
+  if (state.recentlyViewed.length > CONFIG.maxRecentItems) {
+    state.recentlyViewed.pop();
+  }
+
+  saveRecentlyViewed();
+  renderSidebar();
+}
+
+// ============= SIDEBAR =============
+function openSidebar() {
+  elements.sidebar.classList.add('open');
+  elements.sidebarOverlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+  renderSidebar();
+}
+
+function closeSidebar() {
+  elements.sidebar.classList.remove('open');
+  elements.sidebarOverlay.classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+function renderSidebar() {
+  if (!elements.favoritesList || !elements.recentList) return;
+
+  elements.favoritesCount.textContent = state.favorites.size;
+  elements.favoritesList.innerHTML = '';
+
+  if (state.favorites.size === 0) {
+    elements.favoritesList.innerHTML = '<p class="empty-message">No favorites yet</p>';
+  } else {
+    const favoriteItems = state.allItems.filter(item => state.favorites.has(item.link));
+    favoriteItems.forEach(item => {
+      const sidebarItem = createSidebarItem(item);
+      elements.favoritesList.appendChild(sidebarItem);
+    });
+  }
+
+  elements.recentCount.textContent = state.recentlyViewed.length;
+  elements.recentList.innerHTML = '';
+
+  if (state.recentlyViewed.length === 0) {
+    elements.recentList.innerHTML = '<p class="empty-message">No recent items</p>';
+  } else {
+    state.recentlyViewed.forEach(item => {
+      const sidebarItem = createSidebarItem(item);
+      elements.recentList.appendChild(sidebarItem);
+    });
+  }
+}
+
+function createSidebarItem(item) {
+  const div = document.createElement('div');
+  div.className = 'sidebar-item';
+  
+  const title = document.createElement('div');
+  title.className = 'sidebar-item-title';
+  title.textContent = item.title;
+
+  const meta = document.createElement('div');
+  meta.className = 'sidebar-item-meta';
+  meta.textContent = `${item.links.length} mirrors`;
+
+  div.appendChild(title);
+  div.appendChild(meta);
+
+  div.addEventListener('click', () => {
+    closeSidebar();
+    const card = document.querySelector(`[data-link="${item.link}"]`);
+    if (card) {
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  });
+
+  return div;
 }
 
 // ============= EVENT HANDLERS =============
@@ -346,12 +617,16 @@ function attachEventListeners() {
   console.log('🔗 Attaching event listeners...');
 
   // Search
+  let searchTimeout;
   elements.searchInput.addEventListener('input', (e) => {
-    state.searchQuery = e.target.value.trim();
-    elements.clearSearch.style.display = state.searchQuery ? 'block' : 'none';
-    applyFilters();
-    applySorting();
-    renderInitialItems();
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      state.searchQuery = e.target.value.trim();
+      elements.clearSearch.style.display = state.searchQuery ? 'block' : 'none';
+      applyFilters();
+      applySorting();
+      renderInitialItems();
+    }, 300);
   });
 
   elements.clearSearch.addEventListener('click', () => {
@@ -378,6 +653,7 @@ function attachEventListeners() {
   // Sort
   elements.sortSelect.addEventListener('change', (e) => {
     state.sortBy = e.target.value;
+    localStorage.setItem('monkrus_sort', state.sortBy);
     applySorting();
     renderInitialItems();
   });
@@ -397,9 +673,58 @@ function attachEventListeners() {
     }
   });
 
+  // Scroll to top
+  let scrollTimeout;
+  window.addEventListener('scroll', () => {
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      if (elements.scrollToTop) {
+        elements.scrollToTop.style.display = scrollTop > 300 ? 'flex' : 'none';
+      }
+    }, 100);
+  });
+
+  if (elements.scrollToTop) {
+    elements.scrollToTop.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+
+  // Sidebar
+  if (elements.sidebarToggle) {
+    elements.sidebarToggle.addEventListener('click', openSidebar);
+  }
+  if (elements.sidebarClose) {
+    elements.sidebarClose.addEventListener('click', closeSidebar);
+  }
+  if (elements.sidebarOverlay) {
+    elements.sidebarOverlay.addEventListener('click', closeSidebar);
+  }
+
   // Retry button
   elements.retryButton.addEventListener('click', () => {
     loadData();
+  });
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && elements.sidebar && elements.sidebar.classList.contains('open')) {
+      closeSidebar();
+    }
+    
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault();
+      elements.searchInput.focus();
+    }
+
+    if (e.key === 'ArrowLeft' && state.currentPage > 1) {
+      state.currentPage--;
+      renderCurrentPage();
+    } else if (e.key === 'ArrowRight' && state.currentPage < state.totalPages) {
+      state.currentPage++;
+      renderCurrentPage();
+    }
   });
 
   console.log('✓ Event listeners attached');
@@ -408,6 +733,7 @@ function attachEventListeners() {
 // ============= INITIALIZATION =============
 function init() {
   console.log('🎬 Initializing app...');
+  loadFromLocalStorage();
   cacheDOMElements();
   attachEventListeners();
   loadData();
