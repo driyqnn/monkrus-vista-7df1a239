@@ -9,23 +9,27 @@ import { elements } from './state.js';
 
 export async function loadData() {
   try {
+    state.isLoadingChunk = true;
     showLoading(elements);
     
     // Use progressive loading callback
     const data = await fetchData((dataChunk) => {
       // Immediately process and render the data
       state.allItems = dataChunk;
+      state.isLoadingChunk = false;
       processData();
     });
     
     // Final update if needed
     if (data && data !== state.allItems) {
       state.allItems = data;
+      state.isLoadingChunk = false;
       processData();
     }
 
   } catch (error) {
     console.error('Failed to load data:', error);
+    state.isLoadingChunk = false;
     showError(elements);
   }
 }

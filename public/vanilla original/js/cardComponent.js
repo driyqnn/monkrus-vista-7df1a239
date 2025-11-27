@@ -5,6 +5,27 @@ import { renderMirrors } from './mirrorComponent.js';
 import { toggleFavorite, addToRecentlyViewed } from './favorites.js';
 import { testAllMirrors } from './dataService.js';
 
+export function createSkeletonCard() {
+  const skeleton = document.createElement('article');
+  skeleton.className = 'card skeleton';
+  skeleton.innerHTML = `
+    <div class="card-header">
+      <div class="card-left">
+        <div class="skeleton-icon"></div>
+        <div class="card-info">
+          <div class="skeleton-title"></div>
+          <div class="skeleton-meta"></div>
+        </div>
+      </div>
+      <div class="card-right">
+        <div class="skeleton-button"></div>
+        <div class="skeleton-button-sm"></div>
+      </div>
+    </div>
+  `;
+  return skeleton;
+}
+
 export function createCard(item) {
   const card = elements.cardTemplate.content.cloneNode(true);
   const article = card.querySelector('.card');

@@ -86,10 +86,21 @@
       <!-- Items List -->
       <div id="itemsList" class="items-list"></div>
 
-      <!-- Load More -->
-      <div id="loadMoreContainer" class="load-more-container" style="display: none;">
-        <button id="loadMoreButton" class="load-more-button">Load More</button>
-        <div id="autoLoadSpinner" class="loading-spinner" style="display: none;"></div>
+      <!-- Pagination -->
+      <div id="paginationContainer" class="pagination-container" style="display: none;">
+        <button id="prevPage" class="pagination-button" aria-label="Previous page">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+          Previous
+        </button>
+        <div id="pageNumbers" class="page-numbers"></div>
+        <button id="nextPage" class="pagination-button" aria-label="Next page">
+          Next
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
       </div>
 
       <!-- Empty State -->
@@ -134,6 +145,13 @@
 
   <!-- Sidebar Overlay -->
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Scroll to Top Button -->
+  <button id="scrollToTop" class="scroll-to-top" aria-label="Scroll to top" style="display: none;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="18 15 12 9 6 15"></polyline>
+    </svg>
+  </button>
 
   <!-- Card Template -->
   <template id="cardTemplate">
