@@ -8,12 +8,14 @@ import { showLoading, hideLoading, showError } from './utils.js';
 import { elements } from './state.js';
 
 export async function loadData() {
+  console.log('Loading data...');
   try {
     state.isLoadingChunk = true;
     showLoading(elements);
     
     // Use progressive loading callback
     const data = await fetchData((dataChunk) => {
+      console.log('Data chunk received:', dataChunk.length, 'items');
       // Immediately process and render the data
       state.allItems = dataChunk;
       state.isLoadingChunk = false;
@@ -22,13 +24,14 @@ export async function loadData() {
     
     // Final update if needed
     if (data && data !== state.allItems) {
+      console.log('Final data update:', data.length, 'items');
       state.allItems = data;
       state.isLoadingChunk = false;
       processData();
     }
 
   } catch (error) {
-    console.error('Failed to load data:', error);
+    console.error('Failed to load data - Error details:', error);
     state.isLoadingChunk = false;
     showError(elements);
   }
