@@ -42,14 +42,7 @@ export function createMirrorItem(mirror, item) {
     updateMirrorStatus(statusEl, timeEl, tests[mirror]);
   }
 
-  // Remove copy and download buttons
-  const copyBtn = li.querySelector('.copy-button');
-  const downloadBtn = li.querySelector('.download-button');
-  if (copyBtn) copyBtn.remove();
-  if (downloadBtn) downloadBtn.remove();
-
   // Make entire item clickable
-  li.style.cursor = 'pointer';
   li.addEventListener('click', () => {
     window.open(mirror, '_blank');
   });

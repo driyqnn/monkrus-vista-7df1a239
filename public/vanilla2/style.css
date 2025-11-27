@@ -612,12 +612,19 @@ body {
   letter-spacing: 0.5px;
 }
 
-.mirror-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.mirror-domain {
   flex: 1;
-  min-width: 0;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mirror-time {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
 }
 
 .mirror-status {
@@ -646,17 +653,10 @@ body {
   color: #f87171;
 }
 
-.mirror-details {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  min-width: 0;
-}
-
 .mirror-domain {
-  font-size: 13px;
+  flex: 1;
   font-weight: 500;
-  color: var(--foreground);
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -670,48 +670,9 @@ body {
 }
 
 .mirror-time {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
-}
-
-.mirror-actions {
-  display: flex;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-.copy-button,
-.download-button {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text-secondary);
-  cursor: pointer;
-  padding: 6px;
-  transition: var(--transition);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-}
-
-.copy-button svg,
-.download-button svg {
-  width: 16px;
-  height: 16px;
-}
-
-.copy-button:hover,
-.download-button:hover {
-  background: var(--card-hover);
-  color: var(--foreground);
-  border-color: var(--accent-green);
-}
-
-.copy-button.copied {
-  background: var(--accent-green);
-  color: var(--foreground);
-  border-color: var(--accent-green);
+  white-space: nowrap;
 }
 
 /* Pagination */
@@ -1083,15 +1044,6 @@ body {
     align-items: flex-start;
     gap: 8px;
     padding: 10px;
-  }
-
-  .mirror-info {
-    width: 100%;
-  }
-
-  .mirror-actions {
-    width: 100%;
-    justify-content: flex-end;
   }
   
   .mirrors-list {
