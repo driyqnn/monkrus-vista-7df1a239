@@ -567,6 +567,10 @@ body {
 }
 
 .mirror-item {
+  list-style: none;
+}
+
+.mirror-link {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -576,23 +580,24 @@ body {
   gap: 12px;
   padding: 10px 12px;
   transition: var(--transition);
-  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
   position: relative;
 }
 
-.mirror-item:hover {
+.mirror-link:hover {
   background: var(--card-hover);
   border-color: var(--accent-green);
   transform: scale(1.02);
   box-shadow: var(--shadow);
 }
 
-.mirror-item.recommended {
+.mirror-link.recommended {
   border-color: var(--positive-border);
   background: var(--positive-bg);
 }
 
-.mirror-item.recommended:hover {
+.mirror-link.recommended:hover {
   background: var(--positive-bg);
   border-color: var(--positive);
   box-shadow: 0 0 0 2px var(--positive-bg);

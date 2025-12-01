@@ -86,38 +86,25 @@ export function createCard(item) {
 }
 
 export function toggleCard(article, item) {
-  console.log('toggleCard called for:', item.title);
-  
   const content = article.querySelector('.card-content');
   const expandBtn = article.querySelector('.expand-button');
   const isExpanded = state.expandedCards.has(item.link);
-
-  console.log('Current state:', { isExpanded, hasContent: !!content, hasExpandBtn: !!expandBtn });
 
   if (isExpanded) {
     // Collapse
     content.style.display = 'none';
     expandBtn.classList.remove('expanded');
     state.expandedCards.delete(item.link);
-    console.log('Card collapsed');
   } else {
     // Expand
     content.style.display = 'block';
     expandBtn.classList.add('expanded');
     state.expandedCards.add(item.link);
-    console.log('Card expanded');
 
     // Render mirrors if not already rendered
     const mirrorsList = content.querySelector('.mirrors-list');
-    console.log('Mirrors list element:', mirrorsList);
-    console.log('Mirrors list children count:', mirrorsList?.children.length);
-    console.log('Item has links:', item.links?.length);
-    
     if (mirrorsList && mirrorsList.children.length === 0) {
-      console.log('Rendering mirrors...');
       renderMirrors(mirrorsList, item);
-    } else {
-      console.log('Skipping mirror render - already rendered or no list element');
     }
 
     // Add to recently viewed
