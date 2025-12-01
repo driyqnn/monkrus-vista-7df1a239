@@ -64,12 +64,28 @@ export function createMirrorItem(mirror, item) {
 }
 
 export function renderMirrors(mirrorsList, item) {
+  console.log('renderMirrors called:', {
+    item: item.title,
+    linksCount: item.links?.length,
+    links: item.links,
+    mirrorsListElement: mirrorsList
+  });
+
+  if (!item.links || item.links.length === 0) {
+    console.warn('No mirrors to render for item:', item.title);
+    return;
+  }
+
   const fragment = document.createDocumentFragment();
   
-  item.links.forEach(mirror => {
+  item.links.forEach((mirror, index) => {
+    console.log(`Creating mirror ${index + 1}/${item.links.length}:`, mirror);
     const mirrorItem = createMirrorItem(mirror, item);
     fragment.appendChild(mirrorItem);
   });
 
+  console.log('Appending', item.links.length, 'mirrors to list');
   mirrorsList.appendChild(fragment);
+  
+  console.log('Mirrors rendered. List children count:', mirrorsList.children.length);
 }
