@@ -612,21 +612,6 @@ body {
   letter-spacing: 0.5px;
 }
 
-.mirror-domain {
-  flex: 1;
-  font-weight: 500;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.mirror-time {
-  font-size: 12px;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-
 .mirror-status {
   flex-shrink: 0;
   color: var(--text-muted);

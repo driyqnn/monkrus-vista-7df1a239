@@ -7,6 +7,11 @@ export function createMirrorItem(mirror, item) {
   const mirrorEl = elements.mirrorTemplate.content.cloneNode(true);
   const li = mirrorEl.querySelector('.mirror-item');
 
+  if (!li) {
+    console.error('Mirror template not found');
+    return document.createDocumentFragment();
+  }
+
   // Check if recommended
   const domain = getDomain(mirror);
   const isRecommended = CONFIG.preferredMirrors.some(pref => 
@@ -19,9 +24,11 @@ export function createMirrorItem(mirror, item) {
 
   // Domain
   const domainEl = li.querySelector('.mirror-domain');
-  domainEl.textContent = domain;
-  if (state.searchQuery) {
-    highlightText(domainEl, state.searchQuery);
+  if (domainEl) {
+    domainEl.textContent = domain;
+    if (state.searchQuery) {
+      highlightText(domainEl, state.searchQuery);
+    }
   }
 
   // Add recommended badge if applicable
@@ -42,13 +49,16 @@ export function createMirrorItem(mirror, item) {
     updateMirrorStatus(statusEl, timeEl, tests[mirror]);
   }
 
-  // Make entire item clickable
-  li.addEventListener('click', () => {
-    window.open(mirror, '_blank');
-  });
-
   // Store mirror URL for testing
   li.dataset.mirror = mirror;
+  li.dataset.url = mirror;
+
+  // Make entire item clickable - attach before returning
+  li.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    window.open(mirror, '_blank', 'noopener,noreferrer');
+  });
 
   return mirrorEl;
 }
