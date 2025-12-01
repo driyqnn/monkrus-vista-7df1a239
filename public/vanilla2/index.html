@@ -207,13 +207,15 @@
   <!-- Mirror Item Template -->
   <template id="mirrorTemplate">
     <li class="mirror-item">
-      <span class="mirror-status" aria-label="Status">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-          <circle cx="12" cy="12" r="10"/>
-        </svg>
-      </span>
-      <span class="mirror-domain"></span>
-      <span class="mirror-time"></span>
+      <a class="mirror-link" target="_blank" rel="noopener noreferrer">
+        <span class="mirror-status" aria-label="Status">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="12" cy="12" r="10"/>
+          </svg>
+        </span>
+        <span class="mirror-domain"></span>
+        <span class="mirror-time"></span>
+      </a>
     </li>
   </template>
 

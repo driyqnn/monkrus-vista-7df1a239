@@ -6,11 +6,15 @@ import { updateMirrorStatus } from './dataService.js';
 export function createMirrorItem(mirror, item) {
   const mirrorEl = elements.mirrorTemplate.content.cloneNode(true);
   const li = mirrorEl.querySelector('.mirror-item');
+  const link = mirrorEl.querySelector('.mirror-link');
 
-  if (!li) {
-    console.error('Mirror template not found');
+  if (!li || !link) {
+    console.error('Mirror template elements not found');
     return document.createDocumentFragment();
   }
+
+  // Set the href - THIS IS THE KEY!
+  link.href = mirror;
 
   // Check if recommended
   const domain = getDomain(mirror);
@@ -20,6 +24,7 @@ export function createMirrorItem(mirror, item) {
 
   if (isRecommended) {
     li.classList.add('recommended');
+    link.classList.add('recommended');
   }
 
   // Domain
@@ -36,7 +41,7 @@ export function createMirrorItem(mirror, item) {
     const badge = document.createElement('span');
     badge.className = 'recommended-badge';
     badge.textContent = 'recommended';
-    li.appendChild(badge);
+    link.appendChild(badge);
   }
 
   // Status
@@ -51,41 +56,21 @@ export function createMirrorItem(mirror, item) {
 
   // Store mirror URL for testing
   li.dataset.mirror = mirror;
-  li.dataset.url = mirror;
-
-  // Make entire item clickable - attach before returning
-  li.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    window.open(mirror, '_blank', 'noopener,noreferrer');
-  });
 
   return mirrorEl;
 }
 
 export function renderMirrors(mirrorsList, item) {
-  console.log('renderMirrors called:', {
-    item: item.title,
-    linksCount: item.links?.length,
-    links: item.links,
-    mirrorsListElement: mirrorsList
-  });
-
   if (!item.links || item.links.length === 0) {
-    console.warn('No mirrors to render for item:', item.title);
     return;
   }
 
   const fragment = document.createDocumentFragment();
   
-  item.links.forEach((mirror, index) => {
-    console.log(`Creating mirror ${index + 1}/${item.links.length}:`, mirror);
+  item.links.forEach(mirror => {
     const mirrorItem = createMirrorItem(mirror, item);
     fragment.appendChild(mirrorItem);
   });
 
-  console.log('Appending', item.links.length, 'mirrors to list');
   mirrorsList.appendChild(fragment);
-  
-  console.log('Mirrors rendered. List children count:', mirrorsList.children.length);
 }
