@@ -92,12 +92,12 @@ export function toggleCard(article, item) {
 
   if (isExpanded) {
     // Collapse
-    content.style.display = 'none';
+    content.classList.remove('expanded');
     expandBtn.classList.remove('expanded');
     state.expandedCards.delete(item.link);
   } else {
     // Expand
-    content.style.display = 'block';
+    content.classList.add('expanded');
     expandBtn.classList.add('expanded');
     state.expandedCards.add(item.link);
 
