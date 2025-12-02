@@ -1,4 +1,4 @@
-import { Search } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 
 interface SearchBarProps {
   value: string;
@@ -10,23 +10,30 @@ interface SearchBarProps {
 export function SearchBar({ 
   value, 
   onChange, 
-  placeholder = "🔍 Search title...",
+  placeholder = "Search...",
   disabled = false 
 }: SearchBarProps) {
   return (
-    <div className="relative w-full max-w-2xl mx-auto">
-      <div className="relative">
-        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          disabled={disabled}
-          aria-label="Search post titles"
-          className="w-full pl-12 pr-4 py-4 bg-card border border-border rounded-xl text-lg placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-        />
-      </div>
+    <div className="relative">
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 w-4 h-4" />
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        disabled={disabled}
+        aria-label="Search"
+        className="w-full pl-10 pr-10 py-3 bg-card/50 border border-border/50 rounded-lg text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:bg-card focus:border-border disabled:opacity-50 transition-all"
+      />
+      {value && (
+        <button
+          onClick={() => onChange('')}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+          aria-label="Clear search"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      )}
     </div>
   );
 }
