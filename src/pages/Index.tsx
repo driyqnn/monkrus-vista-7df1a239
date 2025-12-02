@@ -100,15 +100,15 @@ const Index = () => {
 
   return (
     <Layout>
-      <div className="container max-w-5xl mx-auto px-4 py-6">
-        <div className="space-y-6">
+      <div className="container max-w-3xl mx-auto px-4 py-8">
+        <div className="space-y-5">
           <SearchBar
             value={searchQuery}
             onChange={setSearchQuery}
             disabled={loading}
           />
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between text-xs">
             <ResultCounter
               count={filteredPosts.length}
               total={posts?.length || 0}
@@ -118,43 +118,33 @@ const Index = () => {
             <button
               onClick={handleRefresh}
               disabled={loading}
-              className="inline-flex items-center gap-2 px-3 py-2 text-sm bg-secondary text-secondary-foreground rounded-lg hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               aria-label="Refresh data"
             >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              Refresh
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">Refresh</span>
             </button>
           </div>
 
           {loading && !posts ? (
-            <div className="space-y-3">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="bg-card border border-border rounded-lg p-5 animate-pulse">
-                  <div className="h-5 bg-muted rounded mb-2 w-3/4"></div>
-                  <div className="h-4 bg-muted rounded w-1/4"></div>
+            <div className="space-y-2">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="bg-card/30 border border-border/30 rounded-xl p-4 animate-pulse">
+                  <div className="h-4 bg-muted/50 rounded w-2/3"></div>
                 </div>
               ))}
             </div>
           ) : filteredPosts.length === 0 && debouncedQuery ? (
-            <div className="text-center py-16">
-              <div className="text-muted-foreground">No results found</div>
+            <div className="text-center py-20">
+              <p className="text-muted-foreground text-sm">No results for "{debouncedQuery}"</p>
             </div>
           ) : filteredPosts.length === 0 && posts?.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="text-muted-foreground mb-2">No data available</div>
-              <a
-                href="https://github.com/dvuzu/monkrus-search"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-sm text-link hover:text-link/80"
-              >
-                <ExternalLink className="w-3 h-3" />
-                Data source
-              </a>
+            <div className="text-center py-20">
+              <p className="text-muted-foreground text-sm">No data available</p>
             </div>
           ) : (
             <>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {paginatedPosts.map((post, index) => (
                   <PostCard key={`${post.link}-${index}`} post={post} />
                 ))}

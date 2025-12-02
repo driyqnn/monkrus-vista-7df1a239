@@ -32,23 +32,21 @@ export const PostCard = React.memo(function PostCard({ post }: PostCardProps) {
   };
 
   return (
-    <article className="bg-card border border-border rounded-lg p-5 hover:shadow-md transition-all duration-200 hover:border-primary/30 group">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <h3 className="text-base font-medium text-card-foreground leading-snug group-hover:text-primary transition-colors">
-            {post.title}
-          </h3>
-        </div>
+    <article className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-4 hover:bg-card hover:border-border transition-all duration-200 group">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="flex-1 min-w-0 text-sm text-card-foreground/90 group-hover:text-card-foreground leading-snug truncate">
+          {post.title}
+        </h3>
         
         <div className="flex items-center gap-2 flex-shrink-0">
           {bestMirror && (
             <button
               onClick={handleBestMirror}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-200 hover:scale-105 focus:scale-105 shadow-sm font-medium"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-150 text-sm font-medium"
               aria-label="Open best mirror"
             >
               <Award className="w-4 h-4" />
-              <span>Best Mirror</span>
+              <span className="hidden sm:inline">Best Mirror</span>
             </button>
           )}
           
@@ -59,14 +57,14 @@ export const PostCard = React.memo(function PostCard({ post }: PostCardProps) {
               aria-expanded={isExpanded}
               aria-controls={listId}
               aria-label={`${isExpanded ? 'Collapse' : 'Expand'} all mirrors`}
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-accent transition-all duration-200 hover:scale-105 focus:scale-105"
+              className="inline-flex items-center gap-1 px-2.5 py-2 text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-lg transition-all duration-150"
             >
               {isExpanded ? (
                 <ChevronDown className="w-4 h-4" />
               ) : (
                 <ChevronRight className="w-4 h-4" />
               )}
-              <span className="text-sm">
+              <span className="text-xs tabular-nums">
                 {post.links.length}
               </span>
             </button>
@@ -79,6 +77,7 @@ export const PostCard = React.memo(function PostCard({ post }: PostCardProps) {
           mirrors={post.links}
           isExpanded={isExpanded}
           listId={listId}
+          originalLink={post.link}
         />
       )}
     </article>
