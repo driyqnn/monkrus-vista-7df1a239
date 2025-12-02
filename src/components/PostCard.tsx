@@ -32,7 +32,7 @@ export const PostCard = React.memo(function PostCard({ post }: PostCardProps) {
   };
 
   return (
-    <article className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-4 hover:bg-card hover:border-border transition-all duration-200 group">
+    <article className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-4 hover:bg-card hover:border-border hover:shadow-sm transition-all duration-200 group">
       <div className="flex items-center justify-between gap-3">
         <h3 className="flex-1 min-w-0 text-sm text-card-foreground/90 group-hover:text-card-foreground leading-snug truncate">
           {post.title}
@@ -42,7 +42,7 @@ export const PostCard = React.memo(function PostCard({ post }: PostCardProps) {
           {bestMirror && (
             <button
               onClick={handleBestMirror}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-150 text-sm font-medium"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg hover:from-primary/90 hover:to-primary/70 hover:shadow-lg hover:shadow-primary/25 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-sm font-semibold shadow-md"
               aria-label="Open best mirror"
             >
               <Award className="w-4 h-4" />
