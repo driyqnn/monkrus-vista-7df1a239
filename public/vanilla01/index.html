@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monkrus Mirror Viewer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <main class="main">
+      <div class="container">
+        <div class="content">
+          <!-- Search Bar -->
+          <div class="search-wrapper">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.3-4.3"></path>
+            </svg>
+            <input 
+              type="text" 
+              id="searchInput" 
+              class="search-input" 
+              placeholder="Search posts..."
+              autocomplete="off"
+            >
+          </div>
+
+          <!-- Result Counter -->
+          <div id="resultCounter" class="result-counter">
+            <span class="result-count">0</span> results
+          </div>
+
+          <!-- Loading State -->
+          <div id="loadingState" class="loading-state">
+            <div class="skeleton-list"></div>
+          </div>
+
+          <!-- Error State -->
+          <div id="errorState" class="error-state hidden">
+            <svg class="error-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" x2="12" y1="8" y2="12"></line>
+              <line x1="12" x2="12.01" y1="16" y2="16"></line>
+            </svg>
+            <h1 class="error-title">Failed to load data</h1>
+            <p id="errorMessage" class="error-message"></p>
+            <button id="retryBtn" class="retry-btn">Try Again</button>
+          </div>
+
+          <!-- Empty State -->
+          <div id="emptyState" class="empty-state hidden">
+            <p class="empty-message">No results for "<span id="emptyQuery"></span>"</p>
+          </div>
+
+          <!-- Posts List -->
+          <div id="postsList" class="posts-list hidden"></div>
+
+          <!-- Pagination -->
+          <nav id="pagination" class="pagination hidden">
+            <div class="pagination-content"></div>
+          </nav>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <p class="footer-text">
+          by <a href="https://m.me/09sychicc" target="_blank" rel="noopener noreferrer">@09sychic</a>
+        </p>
+      </div>
+    </footer>
+
+    <!-- Scroll to Top -->
+    <button id="scrollToTop" class="scroll-to-top hidden" aria-label="Scroll to top">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m18 15-6-6-6 6"/>
+      </svg>
+    </button>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
