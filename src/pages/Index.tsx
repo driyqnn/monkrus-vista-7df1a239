@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react';
-import { RefreshCw, AlertCircle, ExternalLink } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { Layout } from '../components/Layout';
 import { SearchBar } from '../components/SearchBar';
 import { ResultCounter } from '../components/ResultCounter';
 import { PostCard } from '../components/PostCard';
+import { ScrollToTop } from '../components/ScrollToTop';
 import { ErrorBoundary } from '../components/ErrorBoundary';
-import { fetchMonkrus, refresh } from '../api/fetchMonkrus';
+import { fetchMonkrus } from '../api/fetchMonkrus';
 import { useFetchJSON } from '../hooks/useFetchJSON';
 import { useDebounce } from '../hooks/useDebounce';
 import type { Post } from '../types';
@@ -50,14 +51,6 @@ const Index = () => {
     setCurrentPage(1);
   }, [debouncedQuery]);
 
-  const handleRefresh = async () => {
-    try {
-      await refresh();
-      refetch();
-    } catch (error) {
-      console.error('Failed to refresh:', error);
-    }
-  };
 
   if (error) {
     return (
@@ -71,27 +64,13 @@ const Index = () => {
             <p className="text-muted-foreground mb-6">
               {error}
             </p>
-            <div className="space-y-3">
-              <button
-                onClick={handleRefresh}
-                disabled={loading}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-              >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                Try Again
-              </button>
-              <div className="text-sm text-muted-foreground">
-                <a
-                  href="https://github.com/dvuzu/monkrus-search"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-link hover:text-link/80"
-                >
-                  <ExternalLink className="w-3 h-3" />
-                  View data source
-                </a>
-              </div>
-            </div>
+            <button
+              onClick={() => refetch()}
+              disabled={loading}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            >
+              Try Again
+            </button>
           </div>
         </div>
       </Layout>
@@ -99,8 +78,9 @@ const Index = () => {
   }
 
   return (
-    <Layout>
-      <div className="container max-w-3xl mx-auto px-4 py-8">
+    <>
+      <Layout>
+        <div className="container max-w-3xl mx-auto px-4 py-8">
         <div className="space-y-5">
           <SearchBar
             value={searchQuery}
@@ -108,23 +88,11 @@ const Index = () => {
             disabled={loading}
           />
 
-          <div className="flex items-center justify-between text-xs">
-            <ResultCounter
-              count={filteredPosts.length}
-              total={posts?.length || 0}
-              loading={loading}
-            />
-            
-            <button
-              onClick={handleRefresh}
-              disabled={loading}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              aria-label="Refresh data"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">Refresh</span>
-            </button>
-          </div>
+          <ResultCounter
+            count={filteredPosts.length}
+            total={posts?.length || 0}
+            loading={loading}
+          />
 
           {loading && !posts ? (
             <div className="space-y-2">
@@ -203,8 +171,10 @@ const Index = () => {
             </>
           )}
         </div>
-      </div>
-    </Layout>
+        </div>
+      </Layout>
+      <ScrollToTop />
+    </>
   );
 };
 

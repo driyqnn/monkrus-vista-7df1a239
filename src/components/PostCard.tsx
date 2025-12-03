@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, Award } from 'lucide-react';
+import { ChevronDown, ChevronRight, Zap } from 'lucide-react';
 import type { Post } from '../types';
 import { MirrorList } from './MirrorList';
 import { isRecommendedMirror } from '../utils/highlightRecommended';
@@ -42,11 +42,11 @@ export const PostCard = React.memo(function PostCard({ post }: PostCardProps) {
           {bestMirror && (
             <button
               onClick={handleBestMirror}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg hover:from-primary/90 hover:to-primary/70 hover:shadow-lg hover:shadow-primary/25 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-sm font-semibold shadow-md"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-2 border-dashed border-emerald-500/50 rounded-lg hover:bg-emerald-500/20 hover:border-emerald-500 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-sm font-medium"
               aria-label="Open best mirror"
             >
-              <Award className="w-4 h-4" />
-              <span className="hidden sm:inline">Best Mirror</span>
+              <Zap className="w-4 h-4" />
+              <span className="hidden sm:inline">Quick Access</span>
             </button>
           )}
           
