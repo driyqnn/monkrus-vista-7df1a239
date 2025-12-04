@@ -18,6 +18,10 @@ let debounceTimer = null;
 const searchInput = document.getElementById('searchInput');
 const resultCounter = document.getElementById('resultCounter');
 const loadingState = document.getElementById('loadingState');
+const loadingProgress = document.getElementById('loadingProgress');
+const loadedCount = document.getElementById('loadedCount');
+const totalCount = document.getElementById('totalCount');
+const progressFill = document.getElementById('progressFill');
 const errorState = document.getElementById('errorState');
 const errorMessage = document.getElementById('errorMessage');
 const emptyState = document.getElementById('emptyState');
@@ -41,7 +45,12 @@ function createSkeletons() {
   for (let i = 0; i < 8; i++) {
     const skeleton = document.createElement('div');
     skeleton.className = 'skeleton-card';
-    skeleton.innerHTML = '<div class="skeleton-line"></div>';
+    skeleton.innerHTML = `
+      <div class="skeleton-content">
+        <div class="skeleton-line title"></div>
+        <div class="skeleton-line short"></div>
+      </div>
+    `;
     skeletonList.appendChild(skeleton);
   }
 }
@@ -88,7 +97,7 @@ async function fetchData() {
   
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
     
     const res = await fetch(DATA_URL, { signal: controller.signal });
     clearTimeout(timeoutId);
@@ -97,30 +106,102 @@ async function fetchData() {
       throw new Error(`Network response not ok: ${res.status} ${res.statusText}`);
     }
     
-    const json = await res.json();
+    // Get content length for progress
+    const contentLength = res.headers.get('content-length');
+    const total = contentLength ? parseInt(contentLength, 10) : 0;
+    
+    // Show progress bar
+    loadingProgress.classList.remove('hidden');
+    
+    if (total > 0) {
+      // Stream the response for progress tracking
+      const reader = res.body.getReader();
+      const chunks = [];
+      let receivedLength = 0;
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        chunks.push(value);
+        receivedLength += value.length;
+        
+        // Update progress
+        const percent = Math.round((receivedLength / total) * 100);
+        updateProgress(receivedLength, total, percent);
+      }
+      
+      // Combine chunks into single array
+      const chunksAll = new Uint8Array(receivedLength);
+      let position = 0;
+      for (const chunk of chunks) {
+        chunksAll.set(chunk, position);
+        position += chunk.length;
+      }
+      
+      // Decode and parse
+      const text = new TextDecoder('utf-8').decode(chunksAll);
+      var json = JSON.parse(text);
+    } else {
+      // Fallback if no content-length
+      var json = await res.clone().json();
+      updateProgress(100, 100, 100);
+    }
     
     if (!Array.isArray(json)) {
       throw new Error('Invalid data format: expected array');
     }
     
-    // Validate data structure
-    allPosts = json.filter(item => 
-      item && 
-      typeof item.title === 'string' && 
-      typeof item.link === 'string' && 
-      Array.isArray(item.links)
-    );
+    // Validate data structure with progress
+    const validItems = [];
+    const totalItems = json.length;
+    
+    for (let i = 0; i < json.length; i++) {
+      const item = json[i];
+      if (item && typeof item.title === 'string' && typeof item.link === 'string' && Array.isArray(item.links)) {
+        validItems.push(item);
+      }
+      
+      // Update processing progress
+      if (i % 100 === 0 || i === json.length - 1) {
+        updateProcessingProgress(i + 1, totalItems);
+        await new Promise(r => setTimeout(r, 0)); // Allow UI update
+      }
+    }
+    
+    allPosts = validItems;
     
     // Cache
     cachedData = allPosts;
     cacheTimestamp = Date.now();
     
     filteredPosts = allPosts;
+    
+    // Small delay before showing posts for smooth transition
+    await new Promise(r => setTimeout(r, 200));
+    loadingProgress.classList.add('hidden');
     showPosts();
     
   } catch (error) {
+    loadingProgress.classList.add('hidden');
     showError(error.name === 'AbortError' ? 'Request timeout' : error.message);
   }
+}
+
+function updateProgress(received, total, percent) {
+  const kb = (received / 1024).toFixed(0);
+  const totalKb = (total / 1024).toFixed(0);
+  loadedCount.textContent = `${kb}KB`;
+  totalCount.textContent = `${totalKb}KB`;
+  progressFill.style.width = `${percent}%`;
+  document.querySelector('.progress-text').textContent = 'Downloading...';
+}
+
+function updateProcessingProgress(current, total) {
+  loadedCount.textContent = current.toLocaleString();
+  totalCount.textContent = total.toLocaleString();
+  progressFill.style.width = `${Math.round((current / total) * 100)}%`;
+  document.querySelector('.progress-text').textContent = 'Processing items...';
 }
 
 function filterPosts(query) {
@@ -201,6 +282,8 @@ function renderPosts() {
   
   paginated.forEach((post, index) => {
     const card = createPostCard(post, startIndex + index);
+    // Stagger animation delay
+    card.style.animationDelay = `${index * 20}ms`;
     postsList.appendChild(card);
   });
 }
