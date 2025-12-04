@@ -30,14 +30,30 @@ const postsList = document.getElementById('postsList');
 const pagination = document.getElementById('pagination');
 const retryBtn = document.getElementById('retryBtn');
 const scrollToTopBtn = document.getElementById('scrollToTop');
+const pageIndicator = document.getElementById('pageIndicator');
+const currentPageNum = document.getElementById('currentPageNum');
+const totalPagesNum = document.getElementById('totalPagesNum');
+const showingFrom = document.getElementById('showingFrom');
+const showingTo = document.getElementById('showingTo');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', init);
 
 function init() {
   createSkeletons();
+  createKeyboardHint();
   attachEventListeners();
   fetchData();
+}
+
+function createKeyboardHint() {
+  const hint = document.createElement('div');
+  hint.className = 'keyboard-hint';
+  hint.id = 'keyboardHint';
+  hint.innerHTML = `
+    Press <kbd>/</kbd> to search · <kbd>←</kbd><kbd>→</kbd> to navigate pages · <kbd>↑</kbd> scroll to top
+  `;
+  document.body.appendChild(hint);
 }
 
 function createSkeletons() {
@@ -62,6 +78,88 @@ function attachEventListeners() {
   // Scroll to top
   window.addEventListener('scroll', handleScroll);
   scrollToTopBtn.addEventListener('click', scrollToTop);
+  
+  // Keyboard shortcuts
+  document.addEventListener('keydown', handleKeyboard);
+  
+  // Show keyboard hint on first visit
+  if (!localStorage.getItem('keyboardHintShown')) {
+    setTimeout(() => {
+      showKeyboardHint();
+      localStorage.setItem('keyboardHintShown', 'true');
+    }, 2000);
+  }
+}
+
+function handleKeyboard(e) {
+  // Ignore if typing in input
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+    if (e.key === 'Escape') {
+      e.target.blur();
+    }
+    return;
+  }
+  
+  const totalPages = Math.ceil(filteredPosts.length / ITEMS_PER_PAGE);
+  
+  switch (e.key) {
+    case '/':
+      e.preventDefault();
+      searchInput.focus();
+      break;
+    case 'ArrowLeft':
+      if (currentPage > 1) {
+        navigateToPage(currentPage - 1);
+      }
+      break;
+    case 'ArrowRight':
+      if (currentPage < totalPages) {
+        navigateToPage(currentPage + 1);
+      }
+      break;
+    case 'ArrowUp':
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        scrollToTop();
+      }
+      break;
+    case 'Home':
+      e.preventDefault();
+      if (currentPage !== 1) navigateToPage(1);
+      break;
+    case 'End':
+      e.preventDefault();
+      if (currentPage !== totalPages && totalPages > 0) navigateToPage(totalPages);
+      break;
+    case '?':
+      showKeyboardHint();
+      break;
+  }
+}
+
+function navigateToPage(page) {
+  currentPage = page;
+  
+  // Add transition effect
+  postsList.classList.add('transitioning');
+  
+  setTimeout(() => {
+    renderPosts();
+    renderPagination();
+    updatePageIndicator();
+    postsList.classList.remove('transitioning');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, 150);
+}
+
+function showKeyboardHint() {
+  const hint = document.getElementById('keyboardHint');
+  if (hint) {
+    hint.classList.add('visible');
+    setTimeout(() => {
+      hint.classList.remove('visible');
+    }, 4000);
+  }
 }
 
 function handleScroll() {
@@ -221,12 +319,16 @@ function filterPosts(query) {
   
   if (filteredPosts.length === 0 && query.trim()) {
     showEmpty(query);
+    pageIndicator.classList.add('hidden');
   } else {
     renderPosts();
     renderPagination();
+    updatePageIndicator();
     postsList.classList.remove('hidden');
     emptyState.classList.add('hidden');
-    pagination.classList.toggle('hidden', Math.ceil(filteredPosts.length / ITEMS_PER_PAGE) <= 1);
+    const totalPages = Math.ceil(filteredPosts.length / ITEMS_PER_PAGE);
+    pagination.classList.toggle('hidden', totalPages <= 1);
+    pageIndicator.classList.toggle('hidden', totalPages <= 1);
   }
 }
 
@@ -236,6 +338,7 @@ function showLoading() {
   emptyState.classList.add('hidden');
   postsList.classList.add('hidden');
   pagination.classList.add('hidden');
+  pageIndicator.classList.add('hidden');
 }
 
 function showError(message) {
@@ -265,7 +368,22 @@ function showPosts() {
   updateResultCounter();
   renderPosts();
   renderPagination();
-  pagination.classList.toggle('hidden', Math.ceil(filteredPosts.length / ITEMS_PER_PAGE) <= 1);
+  updatePageIndicator();
+  
+  const totalPages = Math.ceil(filteredPosts.length / ITEMS_PER_PAGE);
+  pagination.classList.toggle('hidden', totalPages <= 1);
+  pageIndicator.classList.toggle('hidden', totalPages <= 1);
+}
+
+function updatePageIndicator() {
+  const totalPages = Math.ceil(filteredPosts.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE + 1;
+  const endIndex = Math.min(currentPage * ITEMS_PER_PAGE, filteredPosts.length);
+  
+  currentPageNum.textContent = currentPage;
+  totalPagesNum.textContent = totalPages;
+  showingFrom.textContent = startIndex;
+  showingTo.textContent = endIndex;
 }
 
 function updateResultCounter() {
@@ -444,20 +562,38 @@ function renderPagination() {
   
   // Event listeners
   paginationContent.querySelectorAll('.page-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', (e) => {
+      // Add ripple effect
+      addRipple(e, btn);
+      
       const page = btn.dataset.page;
+      let newPage = currentPage;
+      
       if (page === 'prev') {
-        currentPage = Math.max(1, currentPage - 1);
+        newPage = Math.max(1, currentPage - 1);
       } else if (page === 'next') {
-        currentPage = Math.min(totalPages, currentPage + 1);
+        newPage = Math.min(totalPages, currentPage + 1);
       } else {
-        currentPage = parseInt(page);
+        newPage = parseInt(page);
       }
-      renderPosts();
-      renderPagination();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      if (newPage !== currentPage) {
+        navigateToPage(newPage);
+      }
     });
   });
+}
+
+function addRipple(e, element) {
+  const rect = element.getBoundingClientRect();
+  const ripple = document.createElement('span');
+  ripple.className = 'ripple';
+  ripple.style.left = `${e.clientX - rect.left}px`;
+  ripple.style.top = `${e.clientY - rect.top}px`;
+  element.style.position = 'relative';
+  element.style.overflow = 'hidden';
+  element.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 600);
 }
 
 // Utilities
