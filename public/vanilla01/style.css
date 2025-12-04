@@ -146,6 +146,64 @@ body {
   color: var(--foreground);
 }
 
+/* User Tips */
+.user-tips {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 1rem;
+  background: linear-gradient(
+    135deg,
+    hsla(210 100% 70% / 0.08) 0%,
+    hsla(210 100% 70% / 0.03) 100%
+  );
+  backdrop-filter: blur(12px);
+  border: 1px solid hsla(210 100% 70% / 0.15);
+  border-radius: var(--radius);
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  min-height: 2.5rem;
+  overflow: hidden;
+}
+
+.tips-icon {
+  flex-shrink: 0;
+  color: var(--link);
+  opacity: 0.8;
+}
+
+.tip-text {
+  opacity: 0;
+  transform: translateY(8px);
+  animation: tipFadeIn 0.5s ease-out forwards;
+}
+
+.tip-text.fade-out {
+  animation: tipFadeOut 0.4s ease-in forwards;
+}
+
+@keyframes tipFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes tipFadeOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
 /* Loading Progress */
 .loading-progress {
   padding: 1rem;

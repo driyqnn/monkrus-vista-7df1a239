@@ -4,6 +4,26 @@ const ITEMS_PER_PAGE = 100;
 const RECOMMENDED_DOMAINS = ['pb.wtf', 'uztracker.net'];
 const DEBOUNCE_DELAY = 200;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const TIP_INTERVAL = 5000; // 5 seconds per tip
+
+// User Tips
+const USER_TIPS = [
+  'Press <kbd>/</kbd> to quickly focus the search bar',
+  'Use <kbd>←</kbd> and <kbd>→</kbd> arrow keys to navigate pages',
+  'Press <kbd>Home</kbd> or <kbd>End</kbd> to jump to first/last page',
+  'Click "Quick Access" for the best recommended mirror',
+  'Green highlighted mirrors are recommended for faster downloads',
+  'Press <kbd>?</kbd> anytime to see all keyboard shortcuts',
+  'Your search results are cached for 5 minutes',
+  'Press <kbd>Ctrl</kbd>+<kbd>↑</kbd> to scroll to top instantly',
+  'Click the expand button to see all available mirrors',
+  'Results show X of Y — total matches out of all posts',
+  'The page indicator shows your current position in results',
+  'Mirrors with pb.wtf and uztracker.net are recommended',
+  'Press <kbd>Esc</kbd> to unfocus the search input',
+  'Each page shows up to 100 results for faster loading',
+  'Data loads progressively — watch the progress bar!',
+];
 
 // State
 let allPosts = [];
@@ -13,6 +33,8 @@ let expandedCards = new Set();
 let cachedData = null;
 let cacheTimestamp = null;
 let debounceTimer = null;
+let currentTipIndex = 0;
+let tipInterval = null;
 
 // DOM Elements
 const searchInput = document.getElementById('searchInput');
@@ -36,6 +58,10 @@ const totalPagesNum = document.getElementById('totalPagesNum');
 const showingFrom = document.getElementById('showingFrom');
 const showingTo = document.getElementById('showingTo');
 
+// DOM - Tips
+const userTips = document.getElementById('userTips');
+const tipText = document.getElementById('tipText');
+
 // Initialize
 document.addEventListener('DOMContentLoaded', init);
 
@@ -43,7 +69,35 @@ function init() {
   createSkeletons();
   createKeyboardHint();
   attachEventListeners();
+  initTips();
   fetchData();
+}
+
+// Tips System
+function initTips() {
+  // Show first tip
+  showTip(currentTipIndex);
+  
+  // Start rotation
+  tipInterval = setInterval(() => {
+    rotateTip();
+  }, TIP_INTERVAL);
+}
+
+function showTip(index) {
+  tipText.innerHTML = USER_TIPS[index];
+  tipText.classList.remove('fade-out');
+}
+
+function rotateTip() {
+  // Fade out current tip
+  tipText.classList.add('fade-out');
+  
+  // After fade out, show next tip
+  setTimeout(() => {
+    currentTipIndex = (currentTipIndex + 1) % USER_TIPS.length;
+    showTip(currentTipIndex);
+  }, 400);
 }
 
 function createKeyboardHint() {
