@@ -34,6 +34,17 @@
             <span class="result-count">0</span> results
           </div>
 
+          <!-- Loading Progress -->
+          <div id="loadingProgress" class="loading-progress hidden">
+            <div class="progress-info">
+              <span class="progress-text">Loading data...</span>
+              <span class="progress-counter"><span id="loadedCount">0</span> / <span id="totalCount">0</span></span>
+            </div>
+            <div class="progress-bar">
+              <div id="progressFill" class="progress-fill"></div>
+            </div>
+          </div>
+
           <!-- Loading State -->
           <div id="loadingState" class="loading-state">
             <div class="skeleton-list"></div>
