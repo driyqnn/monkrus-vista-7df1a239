@@ -23,6 +23,11 @@ const USER_TIPS = [
   'Press <kbd>Esc</kbd> to unfocus the search input',
   'Each page shows up to 100 results for faster loading',
   'Data loads progressively — watch the progress bar!',
+  'Double-click a title to expand all mirrors',
+  'Click the title to copy it to clipboard',
+  'Scroll progress is shown at the top of the page',
+  'Use the search to filter through thousands of items',
+  'The stats bar shows total items and cache status',
 ];
 
 // State
@@ -35,6 +40,7 @@ let cacheTimestamp = null;
 let debounceTimer = null;
 let currentTipIndex = 0;
 let tipInterval = null;
+let tipsEnabled = true;
 
 // DOM Elements
 const searchInput = document.getElementById('searchInput');
@@ -57,25 +63,70 @@ const currentPageNum = document.getElementById('currentPageNum');
 const totalPagesNum = document.getElementById('totalPagesNum');
 const showingFrom = document.getElementById('showingFrom');
 const showingTo = document.getElementById('showingTo');
+const scrollProgress = document.getElementById('scrollProgress');
+const welcomeToast = document.getElementById('welcomeToast');
+const closeToast = document.getElementById('closeToast');
+const statsBar = document.getElementById('statsBar');
+const totalItems = document.getElementById('totalItems');
+const cacheStatus = document.getElementById('cacheStatus');
+const cacheStatusText = document.getElementById('cacheStatusText');
+const recommendedCount = document.getElementById('recommendedCount');
+const quickNavHint = document.getElementById('quickNavHint');
 
 // DOM - Tips
 const userTips = document.getElementById('userTips');
 const tipText = document.getElementById('tipText');
+const dismissTips = document.getElementById('dismissTips');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', init);
 
 function init() {
+  // Check if tips were dismissed
+  tipsEnabled = localStorage.getItem('tipsDismissed') !== 'true';
+  if (!tipsEnabled) {
+    userTips.classList.add('hidden');
+  }
+  
   createSkeletons();
   createKeyboardHint();
+  createCopyToast();
   attachEventListeners();
-  initTips();
+  
+  if (tipsEnabled) {
+    initTips();
+  }
+  
+  showWelcomeToast();
   fetchData();
+}
+
+// Welcome Toast
+function showWelcomeToast() {
+  if (localStorage.getItem('welcomeShown') === 'true') return;
+  
+  setTimeout(() => {
+    welcomeToast.classList.remove('hidden');
+    
+    // Auto dismiss after 5 seconds
+    setTimeout(() => {
+      dismissWelcomeToast();
+    }, 5000);
+    
+    localStorage.setItem('welcomeShown', 'true');
+  }, 1000);
+}
+
+function dismissWelcomeToast() {
+  welcomeToast.classList.add('fade-out');
+  setTimeout(() => {
+    welcomeToast.classList.add('hidden');
+  }, 300);
 }
 
 // Tips System
 function initTips() {
-  // Show first tip
+  // Show first tip immediately
   showTip(currentTipIndex);
   
   // Start rotation
@@ -87,9 +138,16 @@ function initTips() {
 function showTip(index) {
   tipText.innerHTML = USER_TIPS[index];
   tipText.classList.remove('fade-out');
+  tipText.classList.add('entering');
+  
+  setTimeout(() => {
+    tipText.classList.remove('entering');
+  }, 500);
 }
 
 function rotateTip() {
+  if (!tipsEnabled) return;
+  
   // Fade out current tip
   tipText.classList.add('fade-out');
   
@@ -98,6 +156,37 @@ function rotateTip() {
     currentTipIndex = (currentTipIndex + 1) % USER_TIPS.length;
     showTip(currentTipIndex);
   }, 400);
+}
+
+function dismissTipsHandler() {
+  tipsEnabled = false;
+  localStorage.setItem('tipsDismissed', 'true');
+  
+  if (tipInterval) {
+    clearInterval(tipInterval);
+    tipInterval = null;
+  }
+  
+  userTips.classList.add('hidden');
+}
+
+// Copy Toast
+function createCopyToast() {
+  const toast = document.createElement('div');
+  toast.className = 'copy-toast';
+  toast.id = 'copyToast';
+  toast.textContent = 'Copied to clipboard!';
+  document.body.appendChild(toast);
+}
+
+function showCopyToast() {
+  const toast = document.getElementById('copyToast');
+  if (toast) {
+    toast.classList.add('visible');
+    setTimeout(() => {
+      toast.classList.remove('visible');
+    }, 2000);
+  }
 }
 
 function createKeyboardHint() {
@@ -127,11 +216,23 @@ function createSkeletons() {
 
 function attachEventListeners() {
   searchInput.addEventListener('input', handleSearch);
+  searchInput.addEventListener('focus', () => {
+    document.querySelector('.search-shortcut').style.opacity = '0';
+  });
+  searchInput.addEventListener('blur', () => {
+    document.querySelector('.search-shortcut').style.opacity = '1';
+  });
   retryBtn.addEventListener('click', fetchData);
   
-  // Scroll to top
+  // Scroll events
   window.addEventListener('scroll', handleScroll);
   scrollToTopBtn.addEventListener('click', scrollToTop);
+  
+  // Toast
+  closeToast.addEventListener('click', dismissWelcomeToast);
+  
+  // Tips dismiss
+  dismissTips.addEventListener('click', dismissTipsHandler);
   
   // Keyboard shortcuts
   document.addEventListener('keydown', handleKeyboard);
@@ -164,11 +265,13 @@ function handleKeyboard(e) {
     case 'ArrowLeft':
       if (currentPage > 1) {
         navigateToPage(currentPage - 1);
+        showQuickNavHint();
       }
       break;
     case 'ArrowRight':
       if (currentPage < totalPages) {
         navigateToPage(currentPage + 1);
+        showQuickNavHint();
       }
       break;
     case 'ArrowUp':
@@ -189,6 +292,13 @@ function handleKeyboard(e) {
       showKeyboardHint();
       break;
   }
+}
+
+function showQuickNavHint() {
+  quickNavHint.classList.add('visible');
+  setTimeout(() => {
+    quickNavHint.classList.remove('visible');
+  }, 2000);
 }
 
 function navigateToPage(page) {
@@ -217,11 +327,17 @@ function showKeyboardHint() {
 }
 
 function handleScroll() {
+  // Scroll to top button
   if (window.scrollY > 300) {
     scrollToTopBtn.classList.add('visible');
   } else {
     scrollToTopBtn.classList.remove('visible');
   }
+  
+  // Scroll progress bar
+  const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const scrollPercent = scrollHeight > 0 ? (window.scrollY / scrollHeight) * 100 : 0;
+  scrollProgress.style.width = `${scrollPercent}%`;
 }
 
 function scrollToTop() {
@@ -236,12 +352,53 @@ function handleSearch(e) {
   }, DEBOUNCE_DELAY);
 }
 
+// Stats Bar
+function updateStatsBar() {
+  statsBar.classList.remove('hidden');
+  totalItems.textContent = allPosts.length.toLocaleString();
+  
+  // Count recommended mirrors
+  let recCount = 0;
+  allPosts.forEach(post => {
+    post.links.forEach(link => {
+      if (isRecommendedMirror(link)) recCount++;
+    });
+  });
+  recommendedCount.textContent = recCount.toLocaleString();
+  
+  // Cache status
+  updateCacheStatus();
+}
+
+function updateCacheStatus() {
+  if (cachedData && cacheTimestamp) {
+    const elapsed = Date.now() - cacheTimestamp;
+    const remaining = Math.max(0, CACHE_DURATION - elapsed);
+    
+    if (remaining > 0) {
+      const mins = Math.ceil(remaining / 60000);
+      cacheStatusText.textContent = `Cached (${mins}m)`;
+      cacheStatus.classList.add('fresh');
+      cacheStatus.classList.remove('stale');
+    } else {
+      cacheStatusText.textContent = 'Cache expired';
+      cacheStatus.classList.remove('fresh');
+      cacheStatus.classList.add('stale');
+    }
+  } else {
+    cacheStatusText.textContent = 'Fresh data';
+    cacheStatus.classList.add('fresh');
+    cacheStatus.classList.remove('stale');
+  }
+}
+
 async function fetchData() {
   // Check cache
   if (cachedData && cacheTimestamp && Date.now() - cacheTimestamp < CACHE_DURATION) {
     allPosts = cachedData;
     filteredPosts = allPosts;
     showPosts();
+    updateStatsBar();
     return;
   }
 
@@ -333,6 +490,7 @@ async function fetchData() {
     await new Promise(r => setTimeout(r, 200));
     loadingProgress.classList.add('hidden');
     showPosts();
+    updateStatsBar();
     
   } catch (error) {
     loadingProgress.classList.add('hidden');
@@ -393,6 +551,7 @@ function showLoading() {
   postsList.classList.add('hidden');
   pagination.classList.add('hidden');
   pageIndicator.classList.add('hidden');
+  statsBar.classList.add('hidden');
 }
 
 function showError(message) {
@@ -471,8 +630,14 @@ function createPostCard(post, index) {
   
   article.innerHTML = `
     <div class="post-header">
-      <h3 class="post-title">${escapeHtml(post.title)}</h3>
+      <h3 class="post-title" title="Click to copy">${escapeHtml(post.title)}</h3>
       <div class="post-actions">
+        <button class="copy-title-btn" aria-label="Copy title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+          </svg>
+        </button>
         ${bestMirror ? `
           <button class="quick-access-btn" data-mirror="${escapeHtml(bestMirror)}" aria-label="Open best mirror">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -499,6 +664,30 @@ function createPostCard(post, index) {
   `;
   
   // Event listeners
+  const titleEl = article.querySelector('.post-title');
+  if (titleEl) {
+    // Click to copy
+    titleEl.addEventListener('click', () => {
+      copyToClipboard(post.title);
+    });
+    
+    // Double-click to expand
+    titleEl.addEventListener('dblclick', () => {
+      const expandBtn = article.querySelector('.expand-btn');
+      if (expandBtn) expandBtn.click();
+    });
+  }
+  
+  const copyBtn = article.querySelector('.copy-title-btn');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      copyToClipboard(post.title);
+      copyBtn.classList.add('copied');
+      setTimeout(() => copyBtn.classList.remove('copied'), 2000);
+    });
+  }
+  
   const quickAccessBtn = article.querySelector('.quick-access-btn');
   if (quickAccessBtn) {
     quickAccessBtn.addEventListener('click', () => {
@@ -523,11 +712,23 @@ function createPostCard(post, index) {
         chevron.style.transform = 'rotate(90deg)';
         expandBtn.setAttribute('aria-expanded', 'true');
         expandedCards.add(cardId);
+        
+        // Add pulse animation
+        article.classList.add('pulse');
+        setTimeout(() => article.classList.remove('pulse'), 300);
       }
     });
   }
   
   return article;
+}
+
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    showCopyToast();
+  }).catch(err => {
+    console.error('Failed to copy:', err);
+  });
 }
 
 function renderMirrorList(post) {
