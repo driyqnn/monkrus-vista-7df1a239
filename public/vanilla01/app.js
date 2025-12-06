@@ -16,16 +16,13 @@ const USER_TIPS = [
   'Press <kbd>?</kbd> anytime to see all keyboard shortcuts',
   'Your search results are cached for 5 minutes',
   'Press <kbd>Ctrl</kbd>+<kbd>↑</kbd> to scroll to top instantly',
-  'Click the expand button to see all available mirrors',
+  'Click the title or expand button to see all available mirrors',
   'Results show X of Y — total matches out of all posts',
   'The page indicator shows your current position in results',
   'Mirrors with pb.wtf and uztracker.net are recommended',
   'Press <kbd>Esc</kbd> to unfocus the search input',
   'Each page shows up to 100 results for faster loading',
   'Data loads progressively — watch the progress bar!',
-  'Double-click a title to expand all mirrors',
-  'Click the title to copy it to clipboard',
-  'Scroll progress is shown at the top of the page',
   'Use the search to filter through thousands of items',
   'The stats bar shows total items and cache status',
 ];
@@ -95,7 +92,6 @@ function init() {
   
   createSkeletons();
   createKeyboardHint();
-  createCopyToast();
   attachEventListeners();
   
   if (tipsEnabled) {
@@ -175,24 +171,6 @@ function dismissTipsHandler() {
   userTips.classList.add('hidden');
 }
 
-// Copy Toast
-function createCopyToast() {
-  const toast = document.createElement('div');
-  toast.className = 'copy-toast';
-  toast.id = 'copyToast';
-  toast.textContent = 'Copied to clipboard!';
-  document.body.appendChild(toast);
-}
-
-function showCopyToast() {
-  const toast = document.getElementById('copyToast');
-  if (toast) {
-    toast.classList.add('visible');
-    setTimeout(() => {
-      toast.classList.remove('visible');
-    }, 2000);
-  }
-}
 
 // Floating Indicator
 function showFloatingIndicator(message) {
@@ -373,18 +351,18 @@ function updateScrollIndicator(scrollPercent) {
   if (!scrollIndicator) return;
   
   // Show indicator when scrolling
-  if (scrollPercent > 5) {
+  if (scrollPercent > 2) {
     scrollIndicator.classList.add('visible');
   } else {
     scrollIndicator.classList.remove('visible');
   }
   
-  // Update active dot based on scroll position
+  // Fill dots progressively based on scroll position (5 dots = 20% each)
   const dots = scrollIndicator.querySelectorAll('.scroll-indicator-dot');
-  const activeIndex = Math.min(Math.floor(scrollPercent / 20), dots.length - 1);
+  const fillCount = Math.ceil(scrollPercent / 20);
   
   dots.forEach((dot, index) => {
-    dot.classList.toggle('active', index === activeIndex);
+    dot.classList.toggle('filled', index < fillCount);
   });
 }
 
@@ -694,17 +672,12 @@ function createPostCard(post, index) {
   const isExpanded = expandedCards.has(cardId);
   
   const bestMirror = post.links.find(isRecommendedMirror) || post.links[0];
+  const hasMultipleMirrors = post.links.length > 1;
   
   article.innerHTML = `
     <div class="post-header">
-      <h3 class="post-title" title="Click to copy">${escapeHtml(post.title)}</h3>
+      <h3 class="post-title${hasMultipleMirrors ? ' clickable' : ''}">${escapeHtml(post.title)}</h3>
       <div class="post-actions">
-        <button class="copy-title-btn" aria-label="Copy title">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
-            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-          </svg>
-        </button>
         ${bestMirror ? `
           <button class="quick-access-btn" data-mirror="${escapeHtml(bestMirror)}" aria-label="Open best mirror">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -713,7 +686,7 @@ function createPostCard(post, index) {
             <span class="btn-text">Quick Access</span>
           </button>
         ` : ''}
-        ${post.links.length > 1 ? `
+        ${hasMultipleMirrors ? `
           <button class="expand-btn" aria-expanded="${isExpanded}" aria-controls="${listId}" aria-label="${isExpanded ? 'Collapse' : 'Expand'} all mirrors">
             <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(${isExpanded ? '90deg' : '0deg'})">
               <path d="m9 18 6-6-6-6"/>
@@ -723,80 +696,58 @@ function createPostCard(post, index) {
         ` : ''}
       </div>
     </div>
-    ${post.links.length > 1 ? `
-      <div id="${listId}" class="mirror-list-wrapper ${isExpanded ? '' : 'hidden'}">
+    ${hasMultipleMirrors ? `
+      <div id="${listId}" class="mirror-list-wrapper${isExpanded ? ' expanded' : ''}">
         ${renderMirrorList(post)}
       </div>
     ` : ''}
   `;
   
-  // Event listeners
-  const titleEl = article.querySelector('.post-title');
-  if (titleEl) {
-    // Click to copy
-    titleEl.addEventListener('click', () => {
-      copyToClipboard(post.title);
-    });
+  // Toggle expand function
+  const toggleExpand = () => {
+    const mirrorWrapper = article.querySelector('.mirror-list-wrapper');
+    const expandBtn = article.querySelector('.expand-btn');
+    if (!mirrorWrapper || !expandBtn) return;
     
-    // Double-click to expand
-    titleEl.addEventListener('dblclick', () => {
-      const expandBtn = article.querySelector('.expand-btn');
-      if (expandBtn) expandBtn.click();
-    });
-  }
+    const chevron = expandBtn.querySelector('.chevron-icon');
+    const isCurrentlyExpanded = mirrorWrapper.classList.contains('expanded');
+    
+    if (isCurrentlyExpanded) {
+      mirrorWrapper.classList.remove('expanded');
+      chevron.style.transform = 'rotate(0deg)';
+      expandBtn.setAttribute('aria-expanded', 'false');
+      expandedCards.delete(cardId);
+    } else {
+      mirrorWrapper.classList.add('expanded');
+      chevron.style.transform = 'rotate(90deg)';
+      expandBtn.setAttribute('aria-expanded', 'true');
+      expandedCards.add(cardId);
+    }
+  };
   
-  const copyBtn = article.querySelector('.copy-title-btn');
-  if (copyBtn) {
-    copyBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      copyToClipboard(post.title);
-      copyBtn.classList.add('copied');
-      setTimeout(() => copyBtn.classList.remove('copied'), 2000);
-    });
+  // Click on title to expand (if multiple mirrors)
+  const titleEl = article.querySelector('.post-title');
+  if (titleEl && hasMultipleMirrors) {
+    titleEl.addEventListener('click', toggleExpand);
   }
   
   const quickAccessBtn = article.querySelector('.quick-access-btn');
   if (quickAccessBtn) {
-    quickAccessBtn.addEventListener('click', () => {
+    quickAccessBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
       window.open(bestMirror, '_blank', 'noopener,noreferrer');
     });
   }
   
   const expandBtn = article.querySelector('.expand-btn');
   if (expandBtn) {
-    expandBtn.addEventListener('click', () => {
-      const mirrorWrapper = article.querySelector('.mirror-list-wrapper');
-      const chevron = expandBtn.querySelector('.chevron-icon');
-      const isCurrentlyExpanded = !mirrorWrapper.classList.contains('hidden');
-      
-      if (isCurrentlyExpanded) {
-        mirrorWrapper.classList.add('hidden');
-        chevron.style.transform = 'rotate(0deg)';
-        expandBtn.setAttribute('aria-expanded', 'false');
-        expandedCards.delete(cardId);
-      } else {
-        mirrorWrapper.classList.remove('hidden');
-        chevron.style.transform = 'rotate(90deg)';
-        expandBtn.setAttribute('aria-expanded', 'true');
-        expandedCards.add(cardId);
-        
-        // Add pulse animation
-        article.classList.add('pulse');
-        setTimeout(() => article.classList.remove('pulse'), 300);
-      }
+    expandBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleExpand();
     });
   }
   
   return article;
-}
-
-function copyToClipboard(text) {
-  navigator.clipboard.writeText(text).then(() => {
-    showCopyToast();
-    showSuccessCheck();
-  }).catch(err => {
-    console.error('Failed to copy:', err);
-  });
 }
 
 function renderMirrorList(post) {
