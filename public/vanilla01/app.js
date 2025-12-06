@@ -72,6 +72,11 @@ const cacheStatus = document.getElementById('cacheStatus');
 const cacheStatusText = document.getElementById('cacheStatusText');
 const recommendedCount = document.getElementById('recommendedCount');
 const quickNavHint = document.getElementById('quickNavHint');
+const floatingIndicator = document.getElementById('floatingIndicator');
+const floatingText = document.getElementById('floatingText');
+const scrollIndicator = document.getElementById('scrollIndicator');
+const successCheck = document.getElementById('successCheck');
+const searchWrapper = document.querySelector('.search-wrapper');
 
 // DOM - Tips
 const userTips = document.getElementById('userTips');
@@ -186,6 +191,27 @@ function showCopyToast() {
     setTimeout(() => {
       toast.classList.remove('visible');
     }, 2000);
+  }
+}
+
+// Floating Indicator
+function showFloatingIndicator(message) {
+  if (floatingText && floatingIndicator) {
+    floatingText.textContent = message;
+    floatingIndicator.classList.add('visible');
+    setTimeout(() => {
+      floatingIndicator.classList.remove('visible');
+    }, 2000);
+  }
+}
+
+// Success Check Animation
+function showSuccessCheck() {
+  if (successCheck) {
+    successCheck.classList.add('visible');
+    setTimeout(() => {
+      successCheck.classList.remove('visible');
+    }, 1000);
   }
 }
 
@@ -338,17 +364,58 @@ function handleScroll() {
   const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
   const scrollPercent = scrollHeight > 0 ? (window.scrollY / scrollHeight) * 100 : 0;
   scrollProgress.style.width = `${scrollPercent}%`;
+  
+  // Scroll Indicator
+  updateScrollIndicator(scrollPercent);
+}
+
+function updateScrollIndicator(scrollPercent) {
+  if (!scrollIndicator) return;
+  
+  // Show indicator when scrolling
+  if (scrollPercent > 5) {
+    scrollIndicator.classList.add('visible');
+  } else {
+    scrollIndicator.classList.remove('visible');
+  }
+  
+  // Update active dot based on scroll position
+  const dots = scrollIndicator.querySelectorAll('.scroll-indicator-dot');
+  const activeIndex = Math.min(Math.floor(scrollPercent / 20), dots.length - 1);
+  
+  dots.forEach((dot, index) => {
+    dot.classList.toggle('active', index === activeIndex);
+  });
 }
 
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  showFloatingIndicator('Scrolled to top');
 }
 
 function handleSearch(e) {
   clearTimeout(debounceTimer);
+  
+  // Add searching indicator
+  if (searchWrapper) {
+    searchWrapper.classList.add('searching');
+  }
+  
   debounceTimer = setTimeout(() => {
     const query = e.target.value;
     filterPosts(query);
+    
+    // Remove searching indicator
+    if (searchWrapper) {
+      searchWrapper.classList.remove('searching');
+    }
+    
+    // Animate result count
+    const countEl = resultCounter.querySelector('.result-count');
+    if (countEl) {
+      countEl.classList.add('counting');
+      setTimeout(() => countEl.classList.remove('counting'), 300);
+    }
   }, DEBOUNCE_DELAY);
 }
 
@@ -726,6 +793,7 @@ function createPostCard(post, index) {
 function copyToClipboard(text) {
   navigator.clipboard.writeText(text).then(() => {
     showCopyToast();
+    showSuccessCheck();
   }).catch(err => {
     console.error('Failed to copy:', err);
   });
